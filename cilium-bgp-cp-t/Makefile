@@ -112,6 +112,9 @@ start-with-build:
     --helm-set=ipv6.enabled=true \
     --helm-set-string=devices=eth+
 
+	@echo "WAITING FOR CILIUM TO BE READY"
+	$(CILIUM_CLI) status --wait > /dev/null 2>&1
+
 	@echo "CREATE RESOURCES"
 	sleep 3
 	$(KUSTOMIZE) build $(MANIFESTDIR) | $(KUBECTL) apply -f -   
