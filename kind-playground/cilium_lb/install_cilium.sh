@@ -35,4 +35,6 @@ cilium install --version "${CILIUM_VERSION}" \
     --set k8s.requireIPv4PodCIDR=true \
     --set externalIPs.enabled=true
 
+cilium status --wait > /dev/null 2>&1    
+
 
