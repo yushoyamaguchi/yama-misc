@@ -11,7 +11,7 @@ HELM_VERSION := 3.12.3
 SUDO ?= sudo
 
 BINDIR := $(abspath $(PWD)/bin)
-MANIFESTDIR := $(abspath $(PWD)/manifests)
+MANIFESTDIR := $(abspath $(PWD)/manifests-for-built)
 MANIFESTDIRFORBUILT := $(abspath $(PWD)/manifests-for-built)
 
 CILIUM_DIR ?= /home/y-yamaguchi/yusho/cilium

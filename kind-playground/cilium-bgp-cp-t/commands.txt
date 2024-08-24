@@ -1,0 +1,3 @@
+kubectl -n test get svc
+
+docker exec -it clab-cilium-bgp-cp-client0 curl http://<LBのexternalIP>

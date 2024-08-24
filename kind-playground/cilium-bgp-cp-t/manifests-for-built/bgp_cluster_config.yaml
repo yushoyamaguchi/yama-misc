@@ -9,9 +9,10 @@ spec:
       kubernetes.io/hostname: kind-control-plane
   bgpInstances:
   - name: "instance-65001"
-  - localASN: 65001
-    neighbors:
-    - peerAddress: "169.254.1.1/32"
+    localASN: 65001
+    peers:
+    - name: "peer-65000"
+      peerAddress: "169.254.1.1"
       peerASN: 65000
       peerConfigRef:
         name: "cilium-peer"
@@ -27,9 +28,10 @@ spec:
       kubernetes.io/hostname: kind-worker
   bgpInstances:
   - name: "instance-65002"
-  - localASN: 65002
-    neighbors:
-    - peerAddress: "169.254.2.1/32"
+    localASN: 65002
+    peers:
+    - name: "peer-65000"
+      peerAddress: "169.254.2.1"
       peerASN: 65000
       peerConfigRef:
         name: "cilium-peer"
@@ -44,9 +46,10 @@ spec:
       kubernetes.io/hostname: kind-worker2
   bgpInstances:
   - name: "instance-65003"
-  - localASN: 65003
-    neighbors:
-    - peerAddress: "169.254.3.1/32"
+    localASN: 65003
+    peers:
+    - name: "peer-65000"
+      peerAddress: "169.254.3.1"
       peerASN: 65000
       peerConfigRef:
         name: "cilium-peer"
@@ -61,9 +64,10 @@ spec:
       kubernetes.io/hostname: kind-worker3
   bgpInstances:
   - name: "instance-65004"
-  - localASN: 65004
-    neighbors:
-    - peerAddress: "169.254.4.1/32"
+    localASN: 65004
+    peers:
+    - name: "peer-65000"
+      peerAddress: "169.254.4.1"
       peerASN: 65000
       peerConfigRef:
         name: "cilium-peer"
