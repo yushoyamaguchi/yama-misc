@@ -3,6 +3,12 @@ kind: CiliumBGPPeerConfig
 metadata:
   name: cilium-peer
 spec:
+  families:
+    - afi: ipv4
+      safi: unicast
+      advertisements:
+        matchLabels:
+          advertise: "bgp"
   timers:
     holdTimeSeconds: 30
     keepAliveTimeSeconds: 30
