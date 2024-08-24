@@ -1,1 +1,1 @@
-# yaam-misc
+# yama-misc
