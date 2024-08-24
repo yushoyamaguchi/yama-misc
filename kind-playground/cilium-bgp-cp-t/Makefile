@@ -12,6 +12,7 @@ SUDO ?= sudo
 
 BINDIR := $(abspath $(PWD)/bin)
 MANIFESTDIR := $(abspath $(PWD)/manifests)
+MANIFESTDIRFORBUILT := $(abspath $(PWD)/manifests-for-built)
 
 CILIUM_DIR ?= /home/y-yamaguchi/yusho/cilium
 
@@ -77,43 +78,25 @@ start-with-build:
 	$(SUDO) $(CONTAINERLAB) -t $(CONTAINERLAB_CONFIG) deploy
 
 	@echo "BUILD CILIUM"
-	$(MAKE) -C $(CILIUM_DIR) kind-image
+	$(MAKE) -C $(CILIUM_DIR) kind-image-fast
 
 	@echo "INSTALL CILIUM"
-	$(CILIUM_CLI) install --wait \
-    --chart-directory=$(CILIUM_DIR)/install/kubernetes/cilium \
-    --helm-set=image.repository=localhost:5000/cilium/cilium-dev \
-    --helm-set=image.useDigest=false \
-    --helm-set=image.tag=local \
-    --helm-set=operator.image.repository=localhost:5000/cilium/operator \
-    --helm-set=operator.image.suffix="" \
-    --helm-set=operator.image.tag=local \
-    --helm-set=operator.image.useDigest=false \
-    --helm-set=hubble.relay.image.repository=localhost:5000/cilium/hubble-relay \
-    --helm-set=hubble.relay.image.tag=local \
-    --helm-set=hubble.relay.image.useDigest=false \
-    --helm-set=hubble.eventBufferCapacity=65535 \
-    --helm-set=bpf.monitorAggregation=none \
-    --helm-set=bgpControlPlane.enabled=true \
-    --helm-set-string=kubeProxyReplacement=true \
-    --helm-set-string=routingMode=native \
-    --helm-set-string=autoDirectNodeRoutes=true \
-    --helm-set-string=ipv4NativeRoutingCIDR=10.244.0.0/16 \
-    --helm-set-string=ipv6NativeRoutingCIDR=fd00:10:244::/56 \
-    --helm-set-string=loadBalancer.acceleration=disabled \
-    --helm-set-string=loadBalancer.mode=dsr \
-    --helm-set-string=loadBalancer.dsrDispatch=geneve \
-    --helm-set-string=loadBalancer.dsrL4Translate=backend \
-    --helm-set=bpf.masquerade=true \
-    --helm-set=enableIPv6Masquerade=false \
-    --helm-set=debug.enabled=true \
-    --helm-set=ipv6.enabled=true \
-    --helm-set-string=devices=eth+
+	$(MAKE) -C $(CILIUM_DIR) kind-install-cilium-fast
+	$(CILIUM_CLI) status --wait > /dev/null 2>&1
+
+	$(CILIUM_CLI) config set bgp-control-plane true
+	$(CILIUM_CLI) config set ipv6.enabled true
+	$(CILIUM_CLI) config set ipam.mode kubernetes
+	$(CILIUM_CLI) config set k8s.require-ipv4-pod-cidr true
+	$(CILIUM_CLI) config set k8s.require-ipv6-pod-cidr true
+	$(CILIUM_CLI) config set kube-proxy-replacement true
+
+	$(CILIUM_CLI) status --wait > /dev/null 2>&1
 
 
 	@echo "CREATE RESOURCES"
 	sleep 3
-	$(KUSTOMIZE) build $(MANIFESTDIR) | $(KUBECTL) apply -f -   
+	$(KUSTOMIZE) build $(MANIFESTDIRFORBUILT) | $(KUBECTL) apply -f -   
 
 $(KIND):
 	mkdir -p $(dir $@)
