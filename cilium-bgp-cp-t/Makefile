@@ -13,11 +13,13 @@ SUDO ?= sudo
 BINDIR := $(abspath $(PWD)/bin)
 MANIFESTDIR := $(abspath $(PWD)/manifests)
 
+CILIUM_DIR ?= /home/y-yamaguchi/yusho/cilium
+
 KIND := $(BINDIR)/kind
 KUBECTL := $(BINDIR)/kubectl
 KUSTOMIZE := $(BINDIR)/kustomize
 CONTAINERLAB := $(BINDIR)/containerlab
-CILIUM_CLI := $(BINDIR)/cilium
+CILIUM_CLI := $(CILIUM_DIR)/cilium-cli/cilium
 HELM := $(BINDIR)/helm
 
 export KUBECTL
@@ -25,7 +27,6 @@ export KUBECTL
 KIND_CONFIG = kind-config.yaml
 CONTAINERLAB_CONFIG = lab.yaml
 
-CILIUM_DIR ?= /home/y-yamaguchi/yusho/cilium
 
 .PHONY: setup
 setup: $(KIND) $(KUBECTL) $(KUSTOMIZE) $(CILIUM_CLI) $(CONTAINERLAB) $(HELM)
