@@ -95,12 +95,10 @@ start-with-build:
     --helm-set=hubble.eventBufferCapacity=65535 \
     --helm-set=bpf.monitorAggregation=none \
     --helm-set=bgpControlPlane.enabled=true \
-    --nodes-without-cilium=kind-worker3 \
-    --helm-set-string=kubeProxyReplacement=strict \
+    --helm-set-string=kubeProxyReplacement=true \
     --helm-set-string=routingMode=native \
     --helm-set-string=autoDirectNodeRoutes=true \
     --helm-set-string=ipv4NativeRoutingCIDR=10.244.0.0/16 \
-    --helm-set-string=tunnel=disabled \
     --helm-set-string=ipv6NativeRoutingCIDR=fd00:10:244::/56 \
     --helm-set-string=loadBalancer.acceleration=disabled \
     --helm-set-string=loadBalancer.mode=dsr \
