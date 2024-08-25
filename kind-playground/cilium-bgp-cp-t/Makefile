@@ -13,9 +13,7 @@ SUDO ?= sudo
 BINDIR := $(abspath $(PWD)/bin)
 
 #MANIFESTDIR := $(abspath $(PWD)/manifests)
-MANIFESTDIR := $(abspath $(PWD)/manifests-for-built)
-
-MANIFESTDIRFORBUILT := $(abspath $(PWD)/manifests-for-built)
+MANIFESTDIR := $(abspath $(PWD)/manifests)
 
 CILIUM_DIR ?= /home/y-yamaguchi/yusho/cilium
 
@@ -87,19 +85,22 @@ start-with-build:
 	$(MAKE) -C $(CILIUM_DIR) kind-install-cilium-fast
 	$(CILIUM_CLI) status --wait > /dev/null 2>&1
 
-	$(CILIUM_CLI) config set bgp-control-plane true
-	$(CILIUM_CLI) config set ipv6.enabled true
-	$(CILIUM_CLI) config set ipam.mode kubernetes
-	$(CILIUM_CLI) config set k8s.require-ipv4-pod-cidr true
-	$(CILIUM_CLI) config set k8s.require-ipv6-pod-cidr true
-	$(CILIUM_CLI) config set kube-proxy-replacement true
+
+	$(CILIUM_CLI) upgrade \
+		--namespace kube-system \
+		--set ipv6.enabled=true \
+		--set bgpControlPlane.enabled=true \
+		--set ipam.mode=kubernetes \
+		--set k8s.requireIPv4PodCIDR=true \
+		--set k8s.requireIPv6PodCIDR=true \
+		--set kubeProxyReplacement=true
 
 	$(CILIUM_CLI) status --wait > /dev/null 2>&1
 
 
 	@echo "CREATE RESOURCES"
 	sleep 3
-	$(KUSTOMIZE) build $(MANIFESTDIRFORBUILT) | $(KUBECTL) apply -f -   
+	$(KUSTOMIZE) build $(MANIFESTDIR) | $(KUBECTL) apply -f -   
 
 $(KIND):
 	mkdir -p $(dir $@)

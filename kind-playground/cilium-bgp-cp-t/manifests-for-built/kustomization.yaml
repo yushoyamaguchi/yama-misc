@@ -1,7 +1,0 @@
-resources:
-  - bgp_cluster_config.yaml
-  - bgp_peer_config.yaml
-  - bgp_advertisement.yaml
-  - loadbalancer_ip_pool.yaml
-  - lb_cluster.yaml
-  - lb_local.yaml
