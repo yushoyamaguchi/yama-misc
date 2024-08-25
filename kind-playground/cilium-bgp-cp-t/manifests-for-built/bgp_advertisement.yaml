@@ -6,4 +6,11 @@ metadata:
     advertise: bgp
 spec:
   advertisements:
-    - advertisementType: "PodCIDR"
+    - advertisementType: "Service"
+      service:
+        addresses:
+          - ClusterIP
+          - LoadBalancerIP
+      selector:
+          matchExpressions:
+            - { key: bgp, operator: In, values: [ blue ] }      
