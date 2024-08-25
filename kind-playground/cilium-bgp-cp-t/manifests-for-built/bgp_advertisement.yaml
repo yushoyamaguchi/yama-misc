@@ -11,6 +11,6 @@ spec:
         addresses:
           - ClusterIP
           - LoadBalancerIP
-      selector:
-          matchExpressions:
-            - { key: bgp, operator: In, values: [ blue ] }      
+      selector:             # <-- select all services
+        matchExpressions:
+         - {key: somekey, operator: NotIn, values: ['never-used-value']}    
