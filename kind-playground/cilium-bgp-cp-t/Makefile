@@ -21,7 +21,7 @@ KIND := $(BINDIR)/kind
 KUBECTL := $(BINDIR)/kubectl
 KUSTOMIZE := $(BINDIR)/kustomize
 CONTAINERLAB := $(BINDIR)/containerlab
-CILIUM_CLI := $(CILIUM_DIR)/cilium-cli/cilium
+CILIUM_CLI := $(BINDIR)/cilium
 HELM := $(BINDIR)/helm
 
 export KUBECTL
