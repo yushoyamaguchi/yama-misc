@@ -1,4 +1,4 @@
-docker build -t custom-kind-node:v1.29.0-network-tools -f ./kind-image/Dockerfile ./kind-image
+docker build -t custom-kind-node:v1.29.0-network-tools ./kind-image
 
 kind create cluster --config=kind-config.yaml
 

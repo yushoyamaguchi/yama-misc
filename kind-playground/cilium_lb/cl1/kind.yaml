@@ -6,7 +6,7 @@ networking:
   podSubnet: 10.1.0.0/16
   serviceSubnet: 172.20.1.0/24
 nodes:
-  - image: kindest/node:v1.21.2
+  - image: custom-kind-node:v1.29.0-network-tools
     role: control-plane
-  - image: kindest/node:v1.21.2
+  - image: custom-kind-node:v1.29.0-network-tools
     role: worker

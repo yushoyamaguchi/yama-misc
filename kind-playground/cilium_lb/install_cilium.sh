@@ -16,6 +16,8 @@ function info() {
     echo "=> ${1}"
 }
 
+info "Building kind image..."
+docker build -t custom-kind-node:v1.29.0-network-tools ./cl1/kind-image
 
 
 info "Creating the clusters..."
