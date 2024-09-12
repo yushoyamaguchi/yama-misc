@@ -26,6 +26,6 @@ start: kind-image
 
 .PHONY: stop
 stop:
-	kubectl delete -f deploy-netshoot.yaml
-	$(SUDO) containerlab -t lab.yaml destroy
-	kind delete cluster
+	-kubectl delete -f deploy-netshoot.yaml
+	-$(SUDO) containerlab -t lab.yaml destroy
+	-kind delete cluster
