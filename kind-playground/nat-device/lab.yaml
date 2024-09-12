@@ -29,7 +29,7 @@ topology:
         - ip addr add 192.168.1.2/24 dev eth1
         - ip link set eth1 up
       
-    node3:
+    nat:
       kind: linux
       image: nicolaka/netshoot:latest
       exec:
@@ -39,4 +39,4 @@ topology:
   links:
     - endpoints: ["switch1:eth1", "node1:eth1"]
     - endpoints: ["switch1:eth2", "node2:eth1"]
-    - endpoints: ["switch1:eth3", "node3:eth1"]
+    - endpoints: ["switch1:eth3", "nat:eth1"]
