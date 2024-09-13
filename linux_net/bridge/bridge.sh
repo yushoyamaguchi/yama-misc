@@ -14,8 +14,8 @@ VETH2_HOST="veth2_host"
 VETH2_NS="veth2_ns"
 
 # IPアドレス
-IP1="192.168.1.1/24"
-IP2="192.168.1.2/24"
+IP1="10.1.1.1/24"
+IP2="10.1.1.2/24"
 
 create_setup() {
     sysctl -w net.ipv4.ip_forward=1
