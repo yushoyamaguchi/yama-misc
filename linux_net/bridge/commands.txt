@@ -1,0 +1,11 @@
+sudo bash bridge.sh create
+sudo bash bridge.sh cleanup
+
+
+sudo ip netns exec netns1 bash
+ping 192.168.1.2
+exit
+
+sudo ip netns exec netns2 bash
+ping 192.168.1.1
+exit
