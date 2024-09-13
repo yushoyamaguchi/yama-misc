@@ -1,0 +1,11 @@
+sudo bash vrf.sh create
+sudo bash vrf.sh cleanup
+
+
+sudo ip netns exec netns1 bash
+ping 192.168.2.1
+exit
+
+sudo ip netns exec netns2 bash
+ping 192.168.1.1
+exit
