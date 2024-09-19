@@ -1,0 +1,4 @@
+docker exec -it clab-table1-sender bash
+ping 10.0.0.2
+
+
