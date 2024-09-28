@@ -87,13 +87,13 @@ start-with-build:
 
 
 	$(CILIUM_CLI) upgrade \
-		--namespace kube-system \
-		--set ipv6.enabled=true \
-		--set bgpControlPlane.enabled=true \
-		--set ipam.mode=kubernetes \
-		--set k8s.requireIPv4PodCIDR=true \
-		--set k8s.requireIPv6PodCIDR=true \
-		--set kubeProxyReplacement=true
+		--chart-directory=$(CILIUM_DIR)/install/kubernetes/cilium \
+		--helm-set=ipv6.enabled=true \
+		--helm-set=bgpControlPlane.enabled=true \
+		--helm-set=ipam.mode=kubernetes \
+		--helm-set=k8s.requireIPv4PodCIDR=true \
+		--helm-set=k8s.requireIPv6PodCIDR=true \
+		--helm-set=kubeProxyReplacement=true
 
 	$(CILIUM_CLI) status --wait > /dev/null 2>&1
 
