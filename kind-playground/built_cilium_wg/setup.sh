@@ -2,7 +2,7 @@
 
 # Default value
 DEFAULT_CILIUM_DIR="/home/y-yamaguchi/yusho/cilium"
-KIND_IMAGE="custom-kind-node:v1.30.0-network-tools"
+KIND_IMAGE="custom-kind-node:v1.29.0-network-tools2"
 
 # Check if CILIUM_DIR is already set in the environment
 if [ -z "${CILIUM_DIR}" ]; then

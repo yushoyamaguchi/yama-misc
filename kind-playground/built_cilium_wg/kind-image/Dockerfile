@@ -1,5 +1,5 @@
 # Use the official Kind node image as base
-FROM kindest/node:v1.30.0
+FROM kindest/node:v1.29.0
 
 RUN echo 'deb http://deb.debian.org/debian bookworm main contrib non-free' > /etc/apt/sources.list
 RUN echo 'deb http://deb.debian.org/debian-security bookworm-security main contrib non-free' >> /etc/apt/sources.list
