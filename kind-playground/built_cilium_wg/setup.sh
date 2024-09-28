@@ -2,6 +2,7 @@
 
 # Default value
 DEFAULT_CILIUM_DIR="/home/y-yamaguchi/yusho/cilium"
+KIND_IMAGE="custom-kind-node:v1.30.0-network-tools"
 
 # Check if CILIUM_DIR is already set in the environment
 if [ -z "${CILIUM_DIR}" ]; then
@@ -17,10 +18,10 @@ echo "CILIUM_DIR is set to: $CILIUM_DIR"
 echo "Setting up Cilium with WireGuard on Kind"
 
 echo "building custom kind node image with network tools"
-docker build --network=host -t custom-kind-node:v1.30.0-network-tools ./kind-image
+docker build --network=host -t $KIND_IMAGE ./kind-image
 
 echo "creating kind cluster"
-kind create cluster --config=kind-config.yaml
+kind create cluster --image $KIND_IMAGE --config=kind-config.yaml
 
 echo "building cilium image"
 make -C "${CILIUM_DIR}" kind-image-fast
