@@ -13,6 +13,7 @@ ipv6:
 
 encryption:
   enabled: true
+  nodeEncryption: true
   type: wireguard
   wireguard:
     persistentKeepalive: "20"
