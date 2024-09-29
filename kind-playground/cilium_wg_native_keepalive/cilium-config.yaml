@@ -14,6 +14,8 @@ ipv6:
 encryption:
   enabled: true
   type: wireguard
+  wireguard:
+    persistentKeepalive: "20"
   
 ipam:
   mode: kubernetes
