@@ -24,17 +24,12 @@ echo "creating kind cluster"
 kind create cluster --image $KIND_IMAGE --config=kind-config.yaml
 
 echo "building cilium image"
-make -C "${CILIUM_DIR}" kind-image-fast
+make -C "${CILIUM_DIR}" kind-image
 
 echo "installing cilium"
-make -C "${CILIUM_DIR}" kind-install-cilium-fast
+cilium install --wait --chart-directory="${CILIUM_DIR}"/install/kubernetes/cilium --values cilium-config.yaml
 
-cilium status --wait > /dev/null 2>&1
 
-echo "applying cilium config"
-cilium upgrade --values cilium-config.yaml
-
-cilium status --wait > /dev/null 2>&1
 
 echo "deploying netshoot pod"
 kubectl apply -f deploy-netshoot.yaml
