@@ -13,7 +13,6 @@ ipv6:
 
 encryption:
   enabled: true
-  nodeEncryption: true
   type: wireguard
   wireguard:
     persistentKeepalive: "20"
@@ -23,6 +22,4 @@ ipam:
 
 # Cilium Routing
 routingMode: native
-ipv4NativeRoutingCIDR: 10.244.0.0/16
-enableIPv4Masquerade: true
-autoDirectNodeRoutes: true
+ipv4NativeRoutingCIDR: 10.100.0.0/16
