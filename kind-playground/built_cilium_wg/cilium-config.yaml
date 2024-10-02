@@ -3,23 +3,14 @@ cluster:
   name: kind-kind
 
 image:
-  repository: localhost:5000/cilium/cilium-dev
-  tag: local
-  useDigest: false
-
+  override: "localhost:5000/cilium/cilium-dev:local"
+  pullPolicy: Never
 operator:
   image:
-    repository: localhost:5000/cilium/operator
-    tag: local
-    useDigest: false
+    override: "localhost:5000/cilium/operator-generic:local"
+    pullPolicy: Never
     suffix: ""
 
-hubble:
-  relay:
-    image:
-      repository: localhost:5000/cilium/hubble-relay
-      tag: local
-      useDigest: false
 
 k8sServiceHost: kind-control-plane
 k8sServicePort: 6443
