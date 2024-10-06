@@ -28,6 +28,7 @@ RUN apt-get update && apt-get install -y \
     socat \
     telnet \
     bpftool \
+    genl-ctrl-list \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
