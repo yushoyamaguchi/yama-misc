@@ -1,11 +1,10 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
-  name: netshoot-deployment
+  name: netshoot-daemonset
   labels:
     app: netshoot
 spec:
-  replicas: 3
   selector:
     matchLabels:
       app: netshoot
