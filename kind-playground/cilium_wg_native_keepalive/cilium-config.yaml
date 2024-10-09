@@ -15,7 +15,7 @@ encryption:
   enabled: true
   type: wireguard
   wireguard:
-    persistentKeepalive: "20"
+    persistentKeepalive: "23s"
   
 ipam:
   mode: kubernetes
