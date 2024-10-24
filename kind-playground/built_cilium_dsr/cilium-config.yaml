@@ -1,0 +1,29 @@
+# cilium-medium.yaml
+cluster:
+  name: kind-kind
+
+image:
+  override: "localhost:5000/cilium/cilium-dev:local"
+  pullPolicy: Never
+operator:
+  image:
+    override: "localhost:5000/cilium/operator-generic:local"
+    pullPolicy: Never
+    suffix: ""
+
+
+k8sServiceHost: kind-control-plane
+k8sServicePort: 6443
+kubeProxyReplacement: true
+
+ipv4:
+  enabled: true
+ipv6:
+  enabled: false
+  
+ipam:
+  mode: kubernetes
+
+# Cilium Routing
+routingMode: tunnel
+tunnelProtocol: geneve
