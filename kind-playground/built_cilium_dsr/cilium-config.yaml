@@ -33,3 +33,4 @@ tunnelProtocol: geneve
 loadBalancer:
   algorithm: maglev
   dsrDispatch: geneve
+  mode: dsr

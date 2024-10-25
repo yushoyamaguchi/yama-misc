@@ -36,7 +36,7 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-    - port: 30851
+    - port: 80
       targetPort: 80
       protocol: TCP
   selector:
