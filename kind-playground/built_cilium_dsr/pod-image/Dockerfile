@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y \
     socat \
     telnet \
     linux-tools-generic \
+    vim \
     tshark \
     libnl-utils \
     wireguard-tools \
