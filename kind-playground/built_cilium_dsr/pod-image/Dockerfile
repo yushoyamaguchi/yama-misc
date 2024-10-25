@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y \
     conntrack \
     socat \
     telnet \
-    linux-tools-$(uname -r) \
+    linux-tools-generic \
     tshark \
     libnl-utils \
     wireguard-tools \
