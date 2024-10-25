@@ -31,5 +31,5 @@ cilium install --wait --chart-directory="${CILIUM_DIR}"/install/kubernetes/ciliu
 
 
 
-echo "deploying netshoot pod"
-kubectl apply -f deploy-netshoot.yaml
+echo "deploying netshoot and nginx pods"
+kubectl apply -f daemonsets.yaml
