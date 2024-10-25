@@ -11,6 +11,8 @@ operator:
     pullPolicy: Never
     suffix: ""
 
+bpf:
+  masquerade: false
 
 k8sServiceHost: kind-control-plane
 k8sServicePort: 6443
@@ -27,3 +29,7 @@ ipam:
 # Cilium Routing
 routingMode: tunnel
 tunnelProtocol: geneve
+
+loadBalancer:
+  algorithm: maglev
+  dsrDispatch: geneve
