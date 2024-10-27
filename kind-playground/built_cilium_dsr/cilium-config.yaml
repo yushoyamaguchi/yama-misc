@@ -26,6 +26,7 @@ ipv6:
 
 debug:
   enabled: true
+  verbose: datapath
 
 ipam:
   mode: kubernetes
