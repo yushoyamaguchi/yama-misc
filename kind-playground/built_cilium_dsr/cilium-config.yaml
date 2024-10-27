@@ -13,6 +13,7 @@ operator:
 
 bpf:
   masquerade: false
+  monitorAggregation: none
 
 k8sServiceHost: kind-control-plane
 k8sServicePort: 6443
@@ -22,7 +23,10 @@ ipv4:
   enabled: true
 ipv6:
   enabled: false
-  
+
+debug:
+  enabled: true
+
 ipam:
   mode: kubernetes
 
