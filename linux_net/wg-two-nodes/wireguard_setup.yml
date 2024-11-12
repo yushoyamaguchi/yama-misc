@@ -103,9 +103,11 @@
 - hosts: wireguard_nodes
   vars:
     wg_interface: wg0
-    wg_address: "{{ '10.0.0.1/24' if inventory_hostname == 'node1' else '10.0.0.2/24' }}"
+    wg_address: "{{ '10.0.1.1/24' if inventory_hostname == 'node1' else '10.0.2.2/24' }}"
+    wg_address_for_iproute2: "{{ '10.0.1.1' if inventory_hostname == 'node1' else '10.0.2.2' }}"
     peer_public_key: "{{ hostvars['node2']['public_key'] if inventory_hostname == 'node1' else hostvars['node1']['public_key'] }}"
     peer_endpoint: "{{ '192.168.1.2' if inventory_hostname == 'node1' else '192.168.1.1' }}"
+    peer_subnet: "{{ '10.0.2.0/24' if inventory_hostname == 'node1' else '10.0.1.0/24' }}"
   tasks:
     - name: Configure WireGuard interface
       template:
@@ -115,4 +117,4 @@
     - name: Bring up WireGuard interface
       command: wg-quick up wg0
       args:
-        creates: /var/run/wireguard/{{ wg_interface }}.sock
+        creates: /var/run/wireguard/{{ wg_interface }}.sock  
