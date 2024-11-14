@@ -1,0 +1,12 @@
+<network>
+  <name>for-wg2</name>
+  <bridge name='virbr1' stp='on' delay='0'/>
+  <mac address='52:54:00:12:34:00'/>
+  <ip address='192.168.123.1' netmask='255.255.255.0'>
+    <dhcp>
+      <range start='192.168.123.3' end='192.168.123.254'/>
+      <host mac='52:54:00:12:34:56' name='vm1' ip='192.168.123.11'/>
+      <host mac='52:54:00:12:34:57' name='vm2' ip='192.168.123.12'/>
+    </dhcp>
+  </ip>
+</network>
