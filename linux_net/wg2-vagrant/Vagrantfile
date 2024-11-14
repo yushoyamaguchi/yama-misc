@@ -1,0 +1,28 @@
+Vagrant.configure("2") do |config|
+    config.vm.box = "ubuntu/jammy64"  # 使用するUbuntuのボックスを指定
+  
+    config.vm.provider :virtualbox do |vb|
+      vb.memory = 512
+      vb.cpus = 1
+    end
+  
+    # VM1の設定
+    config.vm.define "vm1" do |vm1|
+      vm1.vm.network "private_network", ip: "192.168.56.31"
+      vm1.vm.hostname = "vm1"
+      vm1.vm.provider :virtualbox do |vb|
+        vb.memory = 512
+        vb.cpus = 1
+      end
+    end
+  
+    # VM2の設定
+    config.vm.define "vm2" do |vm2|
+      vm2.vm.network "private_network", ip: "192.168.56.32"
+      vm2.vm.hostname = "vm2"
+      vm2.vm.provider :virtualbox do |vb|
+        vb.memory = 512
+        vb.cpus = 1
+      end
+    end
+  end

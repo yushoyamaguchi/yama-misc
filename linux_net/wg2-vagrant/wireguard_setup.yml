@@ -1,77 +1,75 @@
 ---
 - hosts: wireguard_nodes
   gather_facts: false
-  vars:
-    ansible_connection: docker
-    ansible_host: clab-wg-two-nodes-{{ inventory_hostname }}
   tasks:
-    - name: Check if /tmp/.ansible/tmp directory exists
-      raw: test -d /tmp/.ansible/tmp
-      register: tmp_dir_check
-      changed_when: false
-      failed_when: false
+  - name: Check if Python 3 is installed
+    raw: which python3
+    register: python3_check
+    changed_when: false
+    failed_when: false
 
-    - name: Ensure /tmp/.ansible/tmp directory exists
-      raw: mkdir -p /tmp/.ansible/tmp && chmod 0755 /tmp/.ansible/tmp
-      when: tmp_dir_check.rc != 0
+  - name: Install Python 3 on Ubuntu
+    apt:
+      name: python3
+      state: present
+    when: python3_check.rc != 0
+    become: yes
 
-    - name: Check if Python 3 is installed
-      raw: which python3
-      register: python3_check
-      changed_when: false
-      failed_when: false
+  - name: Check if python symlink exists
+    raw: test -L /usr/bin/python && readlink /usr/bin/python | grep -q "python3"
+    register: python_symlink_check
+    changed_when: false
+    failed_when: false
 
-    - name: Install Python 3 on Alpine Linux
-      raw: apk add --no-cache python3
-      when: python3_check.rc != 0
+  - name: Symlink python to python3
+    raw: ln -sf /usr/bin/python3 /usr/bin/python
+    when: python_symlink_check.rc != 0
+    become: yes
 
-    - name: Check if python symlink exists
-      raw: test -L /usr/bin/python && readlink /usr/bin/python | grep -q "python3"
-      register: python_symlink_check
-      changed_when: false
-      failed_when: false
+  - name: Set ansible_python_interpreter to use Python 3
+    set_fact:
+      ansible_python_interpreter: /usr/bin/python3
 
-    - name: Symlink python to python3
-      raw: ln -sf /usr/bin/python3 /usr/bin/python
-      when: python_symlink_check.rc != 0
-
-    - name: Set ansible_python_interpreter to use Python 3
-      set_fact:
-        ansible_python_interpreter: /usr/bin/python3
-
-    - name: Gather facts now that Python is installed
-      setup:
+  - name: Gather facts now that Python is installed
+    setup:
 
 - hosts: wireguard_nodes
   tasks:
-    - name: Check if WireGuard tools are installed
-      command: which wg
+    - name: Check if WireGuard is installed
+      raw: which wg
       register: wg_check
       changed_when: false
       failed_when: false
 
-    - name: Install WireGuard tools
-      raw: apk add --no-cache wireguard-tools
+    - name: Install WireGuard tools on Ubuntu
+      apt:
+        name: wireguard-tools
+        state: present
       when: wg_check.rc != 0
+      become: yes
 
     - name: Check if private key exists
       stat:
         path: /etc/wireguard/privatekey
       register: privatekey_stat
+      become: yes
 
     - name: Generate private key
       shell: wg genkey > /etc/wireguard/privatekey
       when: not privatekey_stat.stat.exists
+      become: yes
 
     - name: Check if public key exists
       stat:
         path: /etc/wireguard/publickey
       register: publickey_stat
+      become: yes
 
     - name: Retrieve private key
       command: cat /etc/wireguard/privatekey
       register: wg_privatekey
       changed_when: false
+      become: yes
 
     - name: Save private key as a fact
       set_fact:
@@ -81,11 +79,13 @@
     - name: Generate public key
       shell: cat /etc/wireguard/privatekey | wg pubkey > /etc/wireguard/publickey
       when: not publickey_stat.stat.exists
+      become: yes
 
     - name: Retrieve public key
       command: cat /etc/wireguard/publickey
       register: wg_publickey
       changed_when: false
+      become: yes
 
     - name: Save public key as a fact
       set_fact:
@@ -103,16 +103,17 @@
 - hosts: wireguard_nodes
   vars:
     wg_interface: wg0
-    wg_address: "{{ '10.0.1.1/24' if inventory_hostname == 'node1' else '10.0.2.2/24' }}"
-    wg_address_for_iproute2: "{{ '10.0.1.1' if inventory_hostname == 'node1' else '10.0.2.2' }}"
+    wg_address: "{{ '10.0.11.1/24' if inventory_hostname == 'node1' else '10.0.12.2/24' }}"
+    wg_address_for_iproute2: "{{ '10.0.11.1' if inventory_hostname == 'node1' else '10.0.12.2' }}"
     peer_public_key: "{{ hostvars['node2']['public_key'] if inventory_hostname == 'node1' else hostvars['node1']['public_key'] }}"
-    peer_endpoint: "{{ '192.168.1.2' if inventory_hostname == 'node1' else '192.168.1.1' }}"
-    peer_subnet: "{{ '10.0.2.0/24' if inventory_hostname == 'node1' else '10.0.1.0/24' }}"
+    peer_endpoint: "{{ '192.168.56.32' if inventory_hostname == 'node1' else '192.168.56.31' }}"
+    peer_subnet: "{{ '10.0.12.0/24' if inventory_hostname == 'node1' else '10.0.11.0/24' }}"
   tasks:
     - name: Configure WireGuard interface
       template:
         src: wg0.conf.j2
         dest: /etc/wireguard/wg0.conf
+      become: yes
 
     - name: Check if WireGuard interface is up
       command: ip link show wg0
