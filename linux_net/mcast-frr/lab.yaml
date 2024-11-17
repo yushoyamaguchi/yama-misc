@@ -1,0 +1,49 @@
+name: mcast-frr
+topology:
+  nodes:
+    node1:
+      kind: linux
+      image: nicolaka/netshoot:latest
+      exec:
+        - ip addr add 192.168.12.1/24 dev eth1
+        - ip link set eth1 up
+        - ip route del default
+        - ip route add default via 192.168.12.2
+
+    node2:
+      kind: linux
+      image: yamaguchi-frr:mcast1
+      entrypoint: /bin/bash
+      exec:
+        - /usr/lib/frr/frrinit.sh start
+        - ip addr add 192.168.12.2/24 dev eth1
+        - ip link set eth1 up
+        - ip addr add 10.0.23.2/24 dev eth2
+        - ip link set eth2 up
+        - sysctl -w net.ipv4.ip_forward=1
+        - sysctl -w net.ipv4.conf.eth1.mc_forwarding=1
+        - sysctl -w net.ipv4.conf.eth2.mc_forwarding=1
+        - >- 
+          vtysh -c "conf t"
+          -c "interface eth1"
+          -c "ip igmp"
+          -c "ip pim"
+          -c "exit"
+          -c "interface eth2"
+          -c "ip igmp"
+          -c "ip pim"
+          -c "exit"
+
+    node3:
+      kind: linux
+      image: nicolaka/netshoot:latest
+      exec:
+        - ip addr add 10.0.23.3/24 dev eth1
+        - ip link set eth1 up 
+        - ip route del default
+        - ip route add default via 10.0.23.2
+
+
+  links:
+    - endpoints: ["node1:eth1", "node2:eth1"]
+    - endpoints: ["node2:eth2", "node3:eth1"]
