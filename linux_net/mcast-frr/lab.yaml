@@ -3,7 +3,8 @@ topology:
   nodes:
     node1:
       kind: linux
-      image: nicolaka/netshoot:latest
+      image: yamaguchi-frr:mcast1
+      entrypoint: /bin/bash
       exec:
         - ip addr add 192.168.12.1/24 dev eth1
         - ip link set eth1 up
@@ -16,13 +17,14 @@ topology:
       entrypoint: /bin/bash
       exec:
         - /usr/lib/frr/frrinit.sh start
+        - ip addr add 10.1.1.1/32 dev lo
+        - ip link set lo up
         - ip addr add 192.168.12.2/24 dev eth1
         - ip link set eth1 up
         - ip addr add 10.0.23.2/24 dev eth2
         - ip link set eth2 up
+        - ip route add 224.0.0.0/4 dev eth2
         - sysctl -w net.ipv4.ip_forward=1
-        - sysctl -w net.ipv4.conf.eth1.mc_forwarding=1
-        - sysctl -w net.ipv4.conf.eth2.mc_forwarding=1
         - >- 
           vtysh -c "conf t"
           -c "interface eth1"
@@ -31,8 +33,17 @@ topology:
           -c "exit"
           -c "interface eth2"
           -c "ip igmp"
+          -c "ip igmp join 239.255.0.1"
           -c "ip pim"
           -c "exit"
+          -c "interface lo"
+          -c "ip pim"
+          -c "exit"
+          -c "ip pim rp 10.1.1.1"
+          -c "exit"
+        - sysctl -w net.ipv4.conf.all.mc_forwarding=1
+        - sysctl -w net.ipv4.conf.eth1.mc_forwarding=1
+        - sysctl -w net.ipv4.conf.eth2.mc_forwarding=1  
 
     node3:
       kind: linux

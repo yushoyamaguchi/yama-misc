@@ -1,3 +1,6 @@
 socat STDIO UDP4-RECVFROM:6666,ip-add-membership=239.255.0.1:10.0.23.3
 
 echo "Test multicast message" | socat - UDP-DATAGRAM:239.255.0.1:6666
+
+
+ip -s mroute show
