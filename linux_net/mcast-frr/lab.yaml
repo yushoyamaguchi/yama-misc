@@ -3,7 +3,8 @@ topology:
   nodes:
     node1:
       kind: linux
-      image: yamaguchi-frr:mcast1
+      #image: yamaguchi-frr:mcast1
+      image: yamaguchi-frr-latest:mcast1
       entrypoint: /bin/bash
       exec:
         - ip addr add 192.168.12.1/24 dev eth1
@@ -13,7 +14,7 @@ topology:
 
     node2:
       kind: linux
-      image: yamaguchi-frr:mcast1
+      image: yamaguchi-frr-latest:mcast1
       entrypoint: /bin/bash
       exec:
         - /usr/lib/frr/frrinit.sh start
