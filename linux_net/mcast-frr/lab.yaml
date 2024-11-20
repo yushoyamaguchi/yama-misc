@@ -44,7 +44,7 @@ topology:
           -c "interface lo"
           -c "ip pim"
           -c "exit"
-          -c "ip pim rp 10.1.1.1"
+          -c "ip pim rp 10.1.1.1 239.0.0.0/8"
           -c "exit"
         - sysctl -w net.ipv4.conf.all.mc_forwarding=1
         - sysctl -w net.ipv4.conf.eth1.mc_forwarding=1
