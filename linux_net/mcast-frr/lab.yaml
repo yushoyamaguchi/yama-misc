@@ -33,7 +33,6 @@ topology:
           -c "debug pim"
           -c "debug igmp"
           -c "interface eth1"
-          -c "ip igmp"
           -c "ip pim"
           -c "exit"
           -c "interface eth2"
