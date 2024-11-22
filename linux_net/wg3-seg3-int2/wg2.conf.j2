@@ -1,9 +1,9 @@
 [Interface]
 PrivateKey = {{ private_key2 }}
 Address = {{ wg_address2 }}
-ListenPort = 51820
+ListenPort = {{port2}}
 
 [Peer]
 PublicKey = {{ peer_public_key2 }}
-Endpoint = {{ peer_endpoint2 }}:51820
-AllowedIPs = {{ allowed_ips2 }}
+Endpoint = {{ peer_endpoint2 }}:{{port2}}
+AllowedIPs = 10.0.0.0/16
