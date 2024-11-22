@@ -1,0 +1,9 @@
+name: wg-dummy-int100
+topology:
+  nodes:
+    node1:
+      kind: linux
+      image: nicolaka/netshoot:latest
+
+
+    

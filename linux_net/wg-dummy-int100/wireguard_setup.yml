@@ -1,0 +1,101 @@
+---
+- hosts: wireguard_nodes
+  gather_facts: false
+  vars:
+    ansible_connection: docker
+    ansible_host: clab-wg-dummy-int100-{{ inventory_hostname }}
+  tasks:
+    - name: Check if /tmp/.ansible/tmp directory exists
+      raw: test -d /tmp/.ansible/tmp
+      register: tmp_dir_check
+      changed_when: false
+      failed_when: false
+
+    - name: Ensure /tmp/.ansible/tmp directory exists
+      raw: mkdir -p /tmp/.ansible/tmp && chmod 0755 /tmp/.ansible/tmp
+      when: tmp_dir_check.rc != 0
+
+    - name: Check if Python 3 is installed
+      raw: which python3
+      register: python3_check
+      changed_when: false
+      failed_when: false
+
+    - name: Install Python 3 on Alpine Linux
+      raw: apk add --no-cache python3
+      when: python3_check.rc != 0
+
+    - name: Install six module for Python 3
+      raw: apk add --no-cache py3-six
+
+    - name: Check if python symlink exists
+      raw: test -L /usr/bin/python && readlink /usr/bin/python | grep -q "python3"
+      register: python_symlink_check
+      changed_when: false
+      failed_when: false
+
+    - name: Symlink python to python3
+      raw: ln -sf /usr/bin/python3 /usr/bin/python
+      when: python_symlink_check.rc != 0
+
+    - name: Set ansible_python_interpreter to use Python 3
+      set_fact:
+        ansible_python_interpreter: /usr/bin/python3
+
+    - name: Gather facts now that Python is installed
+      setup:
+
+- hosts: wireguard_nodes
+  vars:
+    base_port: 51820
+    interface_count: 10  # 新しく追加した変数。必要なインターフェース数を指定
+  tasks:
+    - name: Check if WireGuard tools are installed
+      command: which wg
+      register: wg_check
+      changed_when: false
+      failed_when: false
+
+    - name: Install WireGuard tools
+      raw: apk add --no-cache wireguard-tools
+      when: wg_check.rc != 0
+
+    - name: Generate private keys for each interface
+      command: wg genkey
+      register: wg_private_keys
+      loop: "{{ range(1, interface_count + 1) | list }}"
+      no_log: true
+
+    - name: Generate public keys for each interface
+      command: wg pubkey
+      register: wg_public_keys
+      loop: "{{ range(1, interface_count + 1) | list }}"
+      args:
+        stdin: "{{ wg_private_keys.results[item - 1].stdout }}"
+      no_log: true
+
+    - name: Create WireGuard config directory
+      file:
+        path: /etc/wireguard
+        state: directory
+        mode: '0700'
+
+    - name: Generate WireGuard configs
+      template:
+        src: wgn.conf.j2
+        dest: "/etc/wireguard/wg{{ item }}.conf"
+        mode: '0600'
+      loop: "{{ range(1, interface_count + 1) | list }}"
+      vars:
+        interface_num: "{{ item }}"
+        private_key: "{{ wg_private_keys.results[item - 1].stdout }}"
+        third_octet: "{{ ((item - 1) // 250) }}"
+        host_octet: "{{ ((item - 1) % 250) + 1 }}"
+        wg_address: "10.0.{{ third_octet }}.{{ host_octet }}/24"
+        peer_public_key: "{{ wg_public_keys.results[item - 1].stdout }}"
+        peer_endpoint: "127.0.0.1"
+        listen_port: "{{ base_port + item }}"
+
+    - name: Bring up WireGuard interfaces
+      command: wg-quick up wg{{ item }}
+      loop: "{{ range(1, interface_count + 1) | list }}"
