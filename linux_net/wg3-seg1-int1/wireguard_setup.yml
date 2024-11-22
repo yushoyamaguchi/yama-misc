@@ -2,7 +2,7 @@
   gather_facts: false
   vars:
     ansible_connection: docker
-    ansible_host: clab-wg3-seg3-int1-{{ inventory_hostname }}
+    ansible_host: clab-wg3-seg1-int1-{{ inventory_hostname }}
   tasks:
     - name: Check if /tmp/.ansible/tmp directory exists
       raw: test -d /tmp/.ansible/tmp
@@ -126,19 +126,19 @@
       {% endif %}
     peer_endpoint1: >-
       {% if inventory_hostname == 'node1' %}
-      192.168.31.3
+      192.168.10.3
       {% elif inventory_hostname == 'node2' %}
-      192.168.12.1
+      192.168.10.1
       {% elif inventory_hostname == 'node3' %}
-      192.168.23.2
+      192.168.10.2
       {% endif %}
     peer_endpoint2: >-
       {% if inventory_hostname == 'node1' %}
-      192.168.12.2
+      192.168.10.2
       {% elif inventory_hostname == 'node2' %}
-      192.168.23.3
+      192.168.10.3
       {% elif inventory_hostname == 'node3' %}
-      192.168.31.1
+      192.168.10.1
       {% endif %}
     allowed_ips1: >-
       {% if inventory_hostname == 'node1' %}
