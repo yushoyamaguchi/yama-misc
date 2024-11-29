@@ -1,0 +1,15 @@
+name: ssh-bg
+topology:
+  nodes:
+    node1:
+      kind: linux
+      image: ssh-bg:latest
+      binds:
+        - ./sleep.sh:/sleep.sh
+        - ./tcpdump.sh:/tcpdump.sh
+      exec:
+        - useradd -m -s /bin/bash yusho
+        - sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+        - sed -i 's/#PermitEmptyPasswords no/PermitEmptyPasswords yes/' /etc/ssh/sshd_config
+        - echo 'yusho:' | chpasswd
+        - pkill -HUP sshd

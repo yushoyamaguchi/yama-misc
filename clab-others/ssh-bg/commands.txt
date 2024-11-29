@@ -1,0 +1,5 @@
+ssh root@172.20.20.2 "nohup bash /sleep.sh > /dev/null 2>&1 &"
+
+ssh root@172.20.20.2 "nohup bash /tcpdump.sh > /dev/null 2>&1 &"
+
+ssh root@172.20.20.2 "nohup tcpdump -i any -w /dump.pcap > /dev/null 2>&1 &"
