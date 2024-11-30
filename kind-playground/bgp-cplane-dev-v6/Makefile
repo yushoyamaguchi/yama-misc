@@ -12,7 +12,7 @@ destroy:
 
 install-cilium:
 	make -C $(CILIUM_DIR) kind-image
-	cilium install --wait --chart-directory=$(CILIUM_DIR)/install/kubernetes/cilium --values cilium-config.yaml
+	cilium install --wait --chart-directory=$(CILIUM_DIR)/install/kubernetes/cilium --values cilium-config-dev.yaml
 
 wait-for-cilium:
 	kubectl -n kube-system wait --for=condition=Ready pod -l k8s-app=cilium --timeout=300s
