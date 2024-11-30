@@ -45,3 +45,9 @@ spec:
   gracefulRestart:
     enabled: true
     restartTimeSeconds: 15
+  families:
+    - afi: ipv6
+      safi: unicast
+      advertisements:
+        matchLabels:
+          advertise: "bgp"
