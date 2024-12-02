@@ -1,0 +1,15 @@
+[Interface]
+PrivateKey = {{ private_key }}
+Address = {{ wg_address_server }}
+ListenPort = 51820
+
+[Peer]
+PublicKey = {{ peer_public_key_server2 }}
+Endpoint = {{ peer_endpoint_server2 }}:51820
+AllowedIPs = {{ allowed_ips_server2 }}
+
+[Peer]
+PublicKey = {{ peer_public_key_server3 }}
+Endpoint = {{ peer_endpoint_server3 }}:51820
+AllowedIPs = {{ allowed_ips_server3 }}
+
