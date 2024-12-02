@@ -1,0 +1,196 @@
+- hosts: wireguard_nodes
+  gather_facts: false
+  vars:
+    ansible_connection: docker
+    ansible_host: clab-wg3-seg1-int1-{{ inventory_hostname }}
+  tasks:
+    - name: Check if /tmp/.ansible/tmp directory exists
+      raw: test -d /tmp/.ansible/tmp
+      register: tmp_dir_check
+      changed_when: false
+      failed_when: false
+
+    - name: Ensure /tmp/.ansible/tmp directory exists
+      raw: mkdir -p /tmp/.ansible/tmp && chmod 0755 /tmp/.ansible/tmp
+      when: tmp_dir_check.rc != 0
+
+    - name: Check if Python 3 is installed
+      raw: which python3
+      register: python3_check
+      changed_when: false
+      failed_when: false
+
+    - name: Install Python 3 on Alpine Linux
+      raw: apk add --no-cache python3
+      when: python3_check.rc != 0
+
+    - name: Check if python symlink exists
+      raw: test -L /usr/bin/python && readlink /usr/bin/python | grep -q "python3"
+      register: python_symlink_check
+      changed_when: false
+      failed_when: false
+
+    - name: Symlink python to python3
+      raw: ln -sf /usr/bin/python3 /usr/bin/python
+      when: python_symlink_check.rc != 0
+
+    - name: Set ansible_python_interpreter to use Python 3
+      set_fact:
+        ansible_python_interpreter: /usr/bin/python3
+
+    - name: Gather facts now that Python is installed
+      setup:
+
+- hosts: wireguard_nodes
+  tasks:
+    - name: Enable IP forwarding
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: 1
+        state: present
+        sysctl_set: yes
+
+    - name: Check if WireGuard tools are installed
+      command: which wg
+      register: wg_check
+      changed_when: false
+      failed_when: false
+
+    - name: Install WireGuard tools
+      raw: apk add --no-cache wireguard-tools
+      when: wg_check.rc != 0
+
+    - name: Check if private key1 exists
+      stat:
+        path: /etc/wireguard/privatekey1
+      register: privatekey1_stat
+
+    - name: Generate private key1
+      shell: wg genkey > /etc/wireguard/privatekey1
+      when: not privatekey1_stat.stat.exists
+
+    - name: Retrieve private key1
+      command: cat /etc/wireguard/privatekey1
+      register: wg_privatekey1
+      changed_when: false
+
+    - name: Save private key1 as a fact
+      set_fact:
+        private_key1: "{{ wg_privatekey1.stdout }}"
+      no_log: true
+
+    - name: Check if public key1 exists
+      stat:
+        path: /etc/wireguard/publickey1
+      register: publickey1_stat  
+
+    - name: Generate public key1
+      shell: cat /etc/wireguard/privatekey1 | wg pubkey > /etc/wireguard/publickey1
+      when: not publickey1_stat.stat.exists
+
+    - name: Retrieve public key1
+      command: cat /etc/wireguard/publickey1
+      register: wg_publickey1
+      changed_when: false
+
+    - name: Save public key1 as a fact
+      set_fact:
+        public_key1: "{{ wg_publickey1.stdout }}"
+
+- hosts: wireguard_nodes
+  vars:
+    wg_address1: >-
+      {% if inventory_hostname == 'node1' %}
+      10.0.1.1/24
+      {% elif inventory_hostname == 'node2' %}
+      10.0.2.2/24
+      {% elif inventory_hostname == 'node3' %}
+      10.0.3.3/24
+      {% endif %}
+    my_private_key: >-
+      {% if inventory_hostname == 'node1' %}
+      {{ hostvars['node1']['private_key1'] }}
+      {% elif inventory_hostname == 'node2' %}
+      {{ hostvars['node2']['private_key1'] }}
+      {% elif inventory_hostname == 'node3' %}
+      {{ hostvars['node2']['private_key1'] }}
+      {% endif %}
+    peer_public_key1: >-
+      {% if inventory_hostname == 'node1' %}
+      {{ hostvars['node2']['public_key1'] }}
+      {% elif inventory_hostname == 'node2' %}
+      {{ hostvars['node1']['public_key1'] }}
+      {% elif inventory_hostname == 'node3' %}
+      {{ hostvars['node2']['public_key1'] }}
+      {% endif %}
+    peer_public_key2: >-
+      {% if inventory_hostname == 'node1' %}
+      {{ hostvars['node2']['public_key1'] }}
+      {% elif inventory_hostname == 'node2' %}
+      {{ hostvars['node2']['public_key1'] }}
+      {% elif inventory_hostname == 'node3' %}
+      {{ hostvars['node1']['public_key1'] }}
+      {% endif %}
+    peer_endpoint1: >-
+      {% if inventory_hostname == 'node1' %}
+      192.168.10.3
+      {% elif inventory_hostname == 'node2' %}
+      192.168.10.1
+      {% elif inventory_hostname == 'node3' %}
+      192.168.10.2
+      {% endif %}
+    peer_endpoint2: >-
+      {% if inventory_hostname == 'node1' %}
+      192.168.10.2
+      {% elif inventory_hostname == 'node2' %}
+      192.168.10.3
+      {% elif inventory_hostname == 'node3' %}
+      192.168.10.1
+      {% endif %}
+    allowed_ips1: >-
+      {% if inventory_hostname == 'node1' %}
+      10.0.3.0/24
+      {% elif inventory_hostname == 'node2' %}
+      10.0.1.0/24
+      {% elif inventory_hostname == 'node3' %}
+      10.0.2.0/24
+      {% endif %}
+    allowed_ips2: >-
+      {% if inventory_hostname == 'node1' %}
+      10.0.2.0/24
+      {% elif inventory_hostname == 'node2' %}
+      10.0.3.0/24
+      {% elif inventory_hostname == 'node3' %}
+      10.0.1.0/24
+      {% endif %}
+    port1: >-
+      {% if inventory_hostname == 'node1' %}
+      51831
+      {% elif inventory_hostname == 'node2' %}
+      51812
+      {% elif inventory_hostname == 'node3' %}
+      51823
+      {% endif %}
+    port2: >-
+      {% if inventory_hostname == 'node1' %}
+      51812
+      {% elif inventory_hostname == 'node2' %}
+      51823
+      {% elif inventory_hostname == 'node3' %}
+      51831
+      {% endif %}
+
+  tasks:
+    - name: Configure WireGuard interface
+      template:
+        src: wg0_samekey.conf.j2
+        dest: /etc/wireguard/wg0.conf
+    
+    - name: Check if WireGuard interface is up
+      command: ip link show wg0
+      register: wg_interface_status
+      ignore_errors: true
+
+    - name: Bring up WireGuard interface
+      command: wg-quick up wg0
+      when: wg_interface_status.rc != 0
