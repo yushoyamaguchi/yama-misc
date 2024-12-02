@@ -1,0 +1,133 @@
+- hosts: wireguard_nodes
+  gather_facts: false
+  vars:
+    ansible_connection: docker
+    ansible_host: clab-wg-many-{{ inventory_hostname }}
+  tasks:
+    - name: Check if /tmp/.ansible/tmp directory exists
+      raw: test -d /tmp/.ansible/tmp
+      register: tmp_dir_check
+      changed_when: false
+      failed_when: false
+
+    - name: Ensure /tmp/.ansible/tmp directory exists
+      raw: mkdir -p /tmp/.ansible/tmp && chmod 0755 /tmp/.ansible/tmp
+      when: tmp_dir_check.rc != 0
+
+    - name: Check if Python 3 is installed
+      raw: which python3
+      register: python3_check
+      changed_when: false
+      failed_when: false
+
+    - name: Install Python 3 on Alpine Linux
+      raw: apk add --no-cache python3
+      when: python3_check.rc != 0
+
+    - name: Check if python symlink exists
+      raw: test -L /usr/bin/python && readlink /usr/bin/python | grep -q "python3"
+      register: python_symlink_check
+      changed_when: false
+      failed_when: false
+
+    - name: Symlink python to python3
+      raw: ln -sf /usr/bin/python3 /usr/bin/python
+      when: python_symlink_check.rc != 0
+
+    - name: Set ansible_python_interpreter to use Python 3
+      set_fact:
+        ansible_python_interpreter: /usr/bin/python3
+
+    - name: Gather facts now that Python is installed
+      setup:
+
+- hosts: wireguard_nodes
+  tasks:
+    - name: Enable IP forwarding
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: 1
+        state: present
+        sysctl_set: yes
+
+    - name: Check if WireGuard tools are installed
+      command: which wg
+      register: wg_check
+      changed_when: false
+      failed_when: false
+
+    - name: Install WireGuard tools
+      raw: apk add --no-cache wireguard-tools
+      when: wg_check.rc != 0
+
+    - name: Check if private key exists
+      stat:
+        path: /etc/wireguard/privatekey
+      register: privatekey_stat
+
+    - name: Generate private key
+      shell: wg genkey > /etc/wireguard/privatekey
+      when: not privatekey_stat.stat.exists
+
+    - name: Retrieve private key
+      command: cat /etc/wireguard/privatekey
+      register: wg_privatekey
+      changed_when: false
+
+    - name: Save private key as a fact
+      set_fact:
+        private_key: "{{ wg_privatekey.stdout }}"
+      no_log: true
+
+    - name: Check if public key exists
+      stat:
+        path: /etc/wireguard/publickey
+      register: publickey_stat  
+
+    - name: Generate public key
+      shell: cat /etc/wireguard/privatekey | wg pubkey > /etc/wireguard/publickey
+      when: not publickey_stat.stat.exists
+
+    - name: Retrieve public key
+      command: cat /etc/wireguard/publickey
+      register: wg_publickey
+      changed_when: false
+
+    - name: Save public key as a fact
+      set_fact:
+        public_key: "{{ wg_publickey.stdout }}"
+
+
+- hosts: wireguard_nodes
+  vars:
+    wg_address_server: 10.0.1.1/24
+    peer_public_key_server2: "{{ hostvars['node2']['public_key'] }}"
+    peer_public_key_server3: "{{ hostvars['node3']['public_key'] }}"
+    peer_endpoint_server2: 192.168.0.2
+    peer_endpoint_server3: 192.168.0.3
+    allowed_ips_server2: 10.0.2.0/24
+    allowed_ips_server3: 10.0.3.0/24
+    wg_address_nodes: >-
+      {% for node in groups['all'] %}
+      {% if inventory_hostname == node %}
+      10.0.{{ loop.index  }}.{{ loop.index  }}/24
+      {% endif %}
+      {% endfor %}
+    peer_public_key_nodes: "{{ hostvars['server1']['public_key'] }}"
+    peer_endpoint_nodes: 192.168.0.1
+    allowed_ips_nodes: 10.0.1.0/24
+
+  tasks:
+    - name: Configure WireGuard interface
+      template:
+        src: "{% if inventory_hostname == 'server1' %}wg0_server.conf.j2{% else %}wg0_node.conf.j2{% endif %}"
+        dest: /etc/wireguard/wg0.conf
+    
+    - name: Check if WireGuard interface is up
+      command: ip link show wg0
+      register: wg_interface_status
+      ignore_errors: true
+
+    - name: Bring up WireGuard interface
+      command: wg-quick up wg0
+      when: wg_interface_status.rc != 0

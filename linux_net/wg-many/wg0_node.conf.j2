@@ -1,0 +1,10 @@
+[Interface]
+PrivateKey = {{ private_key }}
+Address = {{ wg_address_nodes }}
+ListenPort = 51820
+
+[Peer]
+PublicKey = {{ peer_public_key_nodes }}
+Endpoint = {{ peer_endpoint_nodes }}:51820
+AllowedIPs = {{ allowed_ips_nodes }}
+
