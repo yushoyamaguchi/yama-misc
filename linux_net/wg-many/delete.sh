@@ -1,3 +1,3 @@
 #!/bin/bash
 
-sudo containerlab -t lab.yaml destroy
+sudo containerlab -t auto-gen/lab.yaml destroy
