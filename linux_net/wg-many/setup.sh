@@ -1,6 +1,9 @@
 #!/bin/bash
 
+mkdir -p auto-gen
+
 bash ./inventory_ini.sh 3
+
 
 cp ./wg0_node.conf.j2 auto-gen/wg0_node.conf.j2
 cp ./wg0_server.conf.j2 auto-gen/wg0_server.conf.j2
