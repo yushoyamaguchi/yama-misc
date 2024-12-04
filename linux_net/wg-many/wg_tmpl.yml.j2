@@ -110,7 +110,7 @@
     peer_public_key_nodes: "{{ hostvars['server1']['public_key'] }}"
     peer_endpoint_nodes: 192.168.0.1
     allowed_ips_nodes: 10.0.1.0/24
-    node_count: 3
+    node_count: {{ node_count }}
     base_ip: "192.168.0."
     base_allowed_ip: "10.0."
 
