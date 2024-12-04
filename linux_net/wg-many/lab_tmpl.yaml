@@ -8,8 +8,7 @@ topology:
         - ip link add mybridge0 type bridge
         - ip link set mybridge0 up
         - ip link set eth1 master mybridge0
-        - ip link set eth2 master mybridge0
-        - ip link set eth3 master mybridge0
+        {{bridge_links}}
         - echo 1 > /proc/sys/net/ipv4/ip_forward
         - ip route add 192.168.200.0/24 dev mybridge0
 
@@ -20,22 +19,8 @@ topology:
         - ip addr add 192.168.200.1/24 dev eth1
         - ip link set eth1 up
 
-    node2:
-      kind: linux
-      image: nicolaka/netshoot:latest
-      exec:
-        - ip addr add 192.168.200.2/24 dev eth1
-        - ip link set eth1 up
-
-    node3:
-      kind: linux
-      image: nicolaka/netshoot:latest
-      exec:
-        - ip addr add 192.168.200.3/24 dev eth1
-        - ip link set eth1 up
-
+{{node_definitions}}
 
   links:
     - endpoints: ["switch1:eth1", "server1:eth1"]
-    - endpoints: ["switch1:eth2", "node2:eth1"]
-    - endpoints: ["switch1:eth3", "node3:eth1"]
+{{link_definitions}}
