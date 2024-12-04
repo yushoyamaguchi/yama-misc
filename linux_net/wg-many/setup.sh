@@ -29,6 +29,6 @@ cp ./wg0_server.conf.j2 auto-gen/wg0_server.conf.j2
 
 sudo containerlab -t auto-gen/lab.yaml deploy
 
-sudo ip route add 192.168.200.0/24 via 172.20.20.3
+sudo ip route add 172.29.200.0/24 via 172.20.20.3
 
 ansible-playbook -i auto-gen/inventory.ini auto-gen/wireguard_setup.yml

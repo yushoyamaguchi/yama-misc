@@ -19,7 +19,7 @@ for ((i=2; i<=NUM_NODES; i++)); do
       kind: linux
       image: nicolaka/netshoot:latest
       exec:
-        - ip addr add 192.168.200.$i/24 dev eth1
+        - ip addr add 172.29.200.$i/24 dev eth1
         - ip link set eth1 up\n\n"
   LINK_DEFINITIONS+="    - endpoints: [\"switch1:eth$i\", \"node$i:eth1\"]\n"
 done
