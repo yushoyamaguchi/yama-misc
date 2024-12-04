@@ -100,24 +100,34 @@
 
 - hosts: wireguard_nodes
   vars:
-    wg_address_server: 10.0.1.1/24
+    wg_address_server: 10.0.0.1/32
     wg_address_nodes: >-
       {% for node in groups['all'] %}
       {% if inventory_hostname == node %}
-      10.0.{{ loop.index  }}.{{ loop.index  }}/24
+      {% set node_index = loop.index %}
+      {% set segment = ((node_index - 1) // 250)  %}
+      {% set last_octet = ((node_index - 1) % 250) + 1 %}
+      10.0.{{ segment }}.{{ last_octet }}/32
       {% endif %}
       {% endfor %}
     peer_public_key_nodes: "{{ hostvars['server1']['public_key'] }}"
-    peer_endpoint_nodes: 192.168.200.1
-    allowed_ips_nodes: 10.0.1.0/24
+    peer_endpoint_nodes: 172.29.0.1
+    allowed_ips_nodes: 10.0.0.1/32
     node_count: {{ node_count }}
-    base_ip: "192.168.200."
+    base_ip: "172.29.0."
     base_allowed_ip: "10.0."
 
   tasks:
     - name: Generate nodes list
       set_fact:
-        nodes: "{{ nodes | default([]) + [ {'name': 'node' + item, 'endpoint': base_ip + item, 'allowed_ips': base_allowed_ip + item + '.0/24'} ] }}"
+        nodes: >-
+          {{ nodes | default([]) + [ {
+            'name': 'node' + item,
+            'endpoint': base_ip + item,
+            'allowed_ips': base_allowed_ip + 
+              ((item|int - 1) // 250) | string + '.' + 
+              (((item|int - 1) % 250) + 1) | string + '/32'
+          } ] }}
       loop: "{{ range(2, node_count + 1) | map('string') | list }}"
       when: inventory_hostname == 'server1'
     
