@@ -20,8 +20,8 @@ ipv6:
 
 bgpControlPlane:
   enabled: true
-  ipv6RouterIDAllocation:
-    mode: mac-address
+  routerIDAllocation:
+    mode: default
 
 ipv6NativeRoutingCIDR: fd00::/16
 
