@@ -20,6 +20,8 @@ mkdir -p auto-gen
 bash ./inventory_ini.sh $1
 bash ./generate_playbook.sh $1
 
+cp ./lab.yaml auto-gen/lab.yaml
+
 
 cp ./wg0_node.conf.j2 auto-gen/wg0_node.conf.j2
 cp ./wg0_server.conf.j2 auto-gen/wg0_server.conf.j2
