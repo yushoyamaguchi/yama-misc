@@ -1,5 +1,8 @@
 CILIUM_DIR ?= /home/y-yamaguchi/yusho/cilium
 
+build-kind-image:
+	sudo pwd
+	docker build -t custom-kind-node:v1.29.0-network-tools ./kind-image
 
 deploy-cluster:
 	sudo echo "Deploying cluster"
@@ -31,7 +34,7 @@ netshoot-daemonset:
 	kubectl apply -f netshoot-ds.yaml
 
 
-setup: deploy-cluster install-cilium wait-for-cilium apply-policy netshoot-daemonset
+setup: build-kind-image deploy-cluster install-cilium wait-for-cilium apply-policy netshoot-daemonset
 
 
 
