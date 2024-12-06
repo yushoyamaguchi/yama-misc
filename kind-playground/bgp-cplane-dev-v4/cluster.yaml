@@ -6,14 +6,16 @@ networking:
   podSubnet: "10.1.0.0/16"
   serviceSubnet: "10.2.0.0/16"
 nodes:
-- role: control-plane
+- image: custom-kind-node:v1.29.0-network-tools
+  role: control-plane
   kubeadmConfigPatches:
   - |
     kind: InitConfiguration
     nodeRegistration:
       kubeletExtraArgs:
         node-ip: "10.0.1.2"
-- role: worker
+- image: custom-kind-node:v1.29.0-network-tools
+  role: worker
   kubeadmConfigPatches:
   - |
     kind: JoinConfiguration

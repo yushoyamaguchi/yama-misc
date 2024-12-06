@@ -41,10 +41,10 @@ ping-w-c:
 	WORKER_POD=$$(kubectl get pods -n $(NAMESPACE) -l $(POD_LABEL) -o jsonpath='{.items[?(@.spec.nodeName=="$(WORKER_NODE)")].metadata.name}'); \
 	CONTROL_PLANE_POD=$$(kubectl get pods -n $(NAMESPACE) -l $(POD_LABEL) -o jsonpath='{.items[?(@.spec.nodeName=="$(CONTROL_PLANE_NODE)")].metadata.name}'); \
 	CONTROL_PLANE_IP=$$(kubectl get pod $$CONTROL_PLANE_POD -n $(NAMESPACE) -o jsonpath='{.status.podIP}'); \
-	kubectl exec -n $(NAMESPACE) $$WORKER_POD -- ping -c 3 $$CONTROL_PLANE_IP
+	kubectl exec -n $(NAMESPACE) $$WORKER_POD -- ping -c 3 -w 4 $$CONTROL_PLANE_IP
 
 ping-c-w:
 	WORKER_POD=$$(kubectl get pods -n $(NAMESPACE) -l $(POD_LABEL) -o jsonpath='{.items[?(@.spec.nodeName=="$(WORKER_NODE)")].metadata.name}'); \
 	CONTROL_PLANE_POD=$$(kubectl get pods -n $(NAMESPACE) -l $(POD_LABEL) -o jsonpath='{.items[?(@.spec.nodeName=="$(CONTROL_PLANE_NODE)")].metadata.name}'); \
 	WORKER_IP=$$(kubectl get pod $$WORKER_POD -n $(NAMESPACE) -o jsonpath='{.status.podIP}'); \
-	kubectl exec -n $(NAMESPACE) $$CONTROL_PLANE_POD -- ping -c 3 $$WORKER_IP
+	kubectl exec -n $(NAMESPACE) $$CONTROL_PLANE_POD -- ping -c 3 -w 4 $$WORKER_IP
