@@ -9,6 +9,11 @@ deploy-cluster:
 	kind create cluster --config cluster.yaml
 	sudo containerlab -t topo.yaml deploy
 
+deploy-cluster-dup:
+	sudo echo "Deploying cluster"
+	kind create cluster --config cluster.yaml
+	sudo containerlab -t topo_dup.yaml deploy
+
 destroy:
 	sudo containerlab -t topo.yaml destroy -c
 	kind delete clusters bgp-cplane-dev-v4
@@ -23,12 +28,17 @@ wait-for-cilium:
 apply-policy:
 	kubectl apply -f bgpcc.yaml -f bgpadv.yaml
 
+apply-policy-dup:
+	kubectl apply -f bgpcc-dup.yaml -f bgpadv.yaml
 
 netshoot-daemonset:
 	kubectl apply -f netshoot-ds.yaml
 
 
 setup: build-kind-image deploy-cluster install-cilium wait-for-cilium apply-policy netshoot-daemonset
+
+
+dup-setup: build-kind-image deploy-cluster-dup install-cilium wait-for-cilium apply-policy-dup netshoot-daemonset
 
 
 
