@@ -21,7 +21,12 @@ kind load docker-image $NETSHOOT_NGINX_IMAGE --name kind
 
 
 echo "installing cilium"
-cilium install --wait  --values cilium-config.yaml --version 1.16.3
+cilium install --wait  --values cilium-config.yaml --version 1.16.0
+
+echo "deploying prometheus"
+helm install prometheus prometheus-community/kube-prometheus-stack \
+  --create-namespace \
+  --namespace monitoring
 
 
 
