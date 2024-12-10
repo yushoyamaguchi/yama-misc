@@ -28,7 +28,12 @@ helm install prometheus prometheus-community/kube-prometheus-stack \
   --create-namespace \
   --namespace monitoring
 
+echo "install fluent-bit"
+helm install fluent-bid-example fluent/fluent-bit -n monitoring
+kubectl apply -f fluent-bit-configmap.yaml
 
+echo "install loki"
+helm install loki grafana/loki-stack -n monitoring
 
 echo "deploying netshoot and nginx pods"
 kubectl apply -f daemonsets.yaml
