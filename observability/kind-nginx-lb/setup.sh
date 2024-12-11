@@ -28,14 +28,10 @@ helm install prometheus prometheus-community/kube-prometheus-stack \
   --create-namespace \
   --namespace monitoring
 
-echo "deploying prometheus"
-helm install prometheus prometheus-community/kube-prometheus-stack \
-  --create-namespace \
-  --namespace monitoring
 
-echo "install fluent-bit"
-helm install fluent-bid-example fluent/fluent-bit -n monitoring
-kubectl apply -f fluent-bit-configmap.yaml
+helm install fluent-bit-example fluent/fluent-bit \
+  -n monitoring \
+  -f values.yaml
 
 echo "install loki"
 helm install loki grafana/loki-stack -n monitoring
