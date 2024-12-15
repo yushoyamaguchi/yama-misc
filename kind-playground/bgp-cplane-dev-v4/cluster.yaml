@@ -8,17 +8,5 @@ networking:
 nodes:
 - image: custom-kind-node:v1.29.0-network-tools
   role: control-plane
-  kubeadmConfigPatches:
-  - |
-    kind: InitConfiguration
-    nodeRegistration:
-      kubeletExtraArgs:
-        node-ip: "10.0.1.1"
 - image: custom-kind-node:v1.29.0-network-tools
   role: worker
-  kubeadmConfigPatches:
-  - |
-    kind: JoinConfiguration
-    nodeRegistration:
-      kubeletExtraArgs:
-        node-ip: "10.0.1.2"
