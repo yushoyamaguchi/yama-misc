@@ -10,7 +10,7 @@ topology:
         - ip link set eth1 master mybridge0
         {{bridge_links}}
         - echo 1 > /proc/sys/net/ipv4/ip_forward
-        - ip route add 172.29.0.0/16 dev mybridge0
+        - ip route add 172.29.0.0/16 dev mybridge0 # bridge デバイスへのルーティングという特殊めの設定
 
     server1:
       kind: linux
