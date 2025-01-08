@@ -26,6 +26,9 @@ apply-policy:
 	#kubectl -n kube-system annotate node bgp-cplane-dev-v6-control-plane "cilium.io/bgp-virtual-router.65001=router-id=10.0.0.2"
 	#kubectl -n kube-system annotate node bgp-cplane-dev-v6-worker "cilium.io/bgp-virtual-router.65002=router-id=10.0.0.3"
 
+apply-policy-dup:
+	kubectl apply -f bgpcc-dup.yaml -f bgpadv.yaml
+
 delete-router-id-annotation:
 	kubectl -n kube-system annotate node bgp-cplane-dev-v6-control-plane "cilium.io/bgp-virtual-router.65001-"
 	kubectl -n kube-system annotate node bgp-cplane-dev-v6-worker "cilium.io/bgp-virtual-router.65002-"
@@ -35,6 +38,8 @@ netshoot-daemonset:
 
 
 setup: build-kind-image deploy-cluster install-cilium wait-for-cilium apply-policy netshoot-daemonset
+
+setup-dup: build-kind-image deploy-cluster install-cilium wait-for-cilium apply-policy-dup netshoot-daemonset
 
 
 
