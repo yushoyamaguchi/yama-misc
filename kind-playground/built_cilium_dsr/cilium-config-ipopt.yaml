@@ -33,7 +33,6 @@ ipam:
 
 # Cilium Routing
 routingMode: tunnel
-tunnelProtocol: geneve
 
 loadBalancer:
   algorithm: maglev
