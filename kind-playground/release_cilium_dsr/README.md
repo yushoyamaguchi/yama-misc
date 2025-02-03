@@ -29,3 +29,8 @@ bash setup.sh
 ```
 bash cleanup.sh
 ```
+
+# test
+```
+bash curl.sh
+```
