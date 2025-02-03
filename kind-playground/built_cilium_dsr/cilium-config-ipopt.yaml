@@ -35,5 +35,6 @@ ipam:
 routingMode: tunnel
 
 loadBalancer:
+  mode: dsr
   algorithm: maglev
   dsrDispatch: opt
