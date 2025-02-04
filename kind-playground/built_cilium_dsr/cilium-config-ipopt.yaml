@@ -21,6 +21,7 @@ kubeProxyReplacement: true
 
 ipv4:
   enabled: true
+  nativeRoutingCIDR: 10.0.0.0/8
 ipv6:
   enabled: false
 
@@ -32,7 +33,7 @@ ipam:
   mode: kubernetes
 
 # Cilium Routing
-routingMode: tunnel
+routingMode: native
 
 loadBalancer:
   mode: dsr
