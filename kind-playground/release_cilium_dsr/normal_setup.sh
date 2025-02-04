@@ -36,7 +36,7 @@ make -C "${CILIUM_DIR}" kind-image
 echo "installing cilium"
 cilium install --values cilium-config-normal.yaml
 
-
+kubectl -n kube-system wait --for=condition=Ready pod -l k8s-app=cilium --timeout=300s
 
 echo "deploying netshoot and nginx pods"
 kubectl apply -f daemonsets.yaml
