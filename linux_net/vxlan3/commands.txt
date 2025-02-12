@@ -1,0 +1,3 @@
+bridge fdb show
+
+bridge fdb show dev vxlan0
