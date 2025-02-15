@@ -1,0 +1,32 @@
+# pwru 'dst host 10.0.0.2 ' --output-caller
+2025/02/15 06:08:37 Attaching kprobes (via kprobe)...
+1456 / 1456 [--------------------------------------------------------------------------------------------] 100.00% 461 p/s
+2025/02/15 06:08:40 Attached (ignored 60)
+2025/02/15 06:08:40 Listening for events..
+SKB                CPU PROCESS          NETNS      MARK/x        IFACE       PROTO  MTU   LEN   TUPLE FUNC CALLER
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0               0         0x0000 1500  84    10.0.0.1:0->10.0.0.2:0(icmp) ip_send_skb ip_push_pending_frames
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0               0         0x0000 1500  84    10.0.0.1:0->10.0.0.2:0(icmp) ip_local_out ip_send_skb
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0               0         0x0000 1500  84    10.0.0.1:0->10.0.0.2:0(icmp) __ip_local_out ip_local_out
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0               0         0x0800 1500  84    10.0.0.1:0->10.0.0.2:0(icmp) nf_hook_slow   __ip_local_out
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0               0         0x0800 1500  84    10.0.0.1:0->10.0.0.2:0(icmp) ip_output      ip_local_out
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0            vxlan0:2     0x0800 1500  84    10.0.0.1:0->10.0.0.2:0(icmp) nf_hook_slow   ip_output
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0            vxlan0:2     0x0800 1500  84    10.0.0.1:0->10.0.0.2:0(icmp) apparmor_ipv4_postroute nf_hook_slow
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0            vxlan0:2     0x0800 1500  84    10.0.0.1:0->10.0.0.2:0(icmp) ip_finish_output        ip_output
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0            vxlan0:2     0x0800 1500  84    10.0.0.1:0->10.0.0.2:0(icmp) __cgroup_bpf_run_filter_skb ip_finish_output
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0            vxlan0:2     0x0800 1500  84    10.0.0.1:0->10.0.0.2:0(icmp) __ip_finish_output          ip_finish_output
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0            vxlan0:2     0x0800 1500  84    10.0.0.1:0->10.0.0.2:0(icmp) ip_finish_output2           __ip_finish_output
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0            vxlan0:2     0x0800 1500  98    10.0.0.1:0->10.0.0.2:0(icmp) dev_queue_xmit              ip_finish_output2
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0            vxlan0:2     0x0800 1500  98    10.0.0.1:0->10.0.0.2:0(icmp) __dev_queue_xmit            dev_queue_xmit
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0            vxlan0:2     0x0800 1500  98    10.0.0.1:0->10.0.0.2:0(icmp) netdev_core_pick_tx         __dev_queue_xmit
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0            vxlan0:2     0x0800 1500  98    10.0.0.1:0->10.0.0.2:0(icmp) validate_xmit_skb           __dev_queue_xmit
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0            vxlan0:2     0x0800 1500  98    10.0.0.1:0->10.0.0.2:0(icmp) netif_skb_features          validate_xmit_skb
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0            vxlan0:2     0x0800 1500  98    10.0.0.1:0->10.0.0.2:0(icmp) skb_network_protocol        netif_skb_features
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0            vxlan0:2     0x0800 1500  98    10.0.0.1:0->10.0.0.2:0(icmp) validate_xmit_xfrm          validate_xmit_skb
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0            vxlan0:2     0x0800 1500  98    10.0.0.1:0->10.0.0.2:0(icmp) dev_hard_start_xmit         __dev_queue_xmit
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0            vxlan0:2     0x0800 1500  98    10.0.0.1:0->10.0.0.2:0(icmp) kfree_skb_reason(SKB_DROP_REASON_NOT_SPECIFIED) vxlan_xmit[vxlan]
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0            vxlan0:2     0x0800 1500  98    10.0.0.1:0->10.0.0.2:0(icmp) skb_release_all                                 kfree_skb_reason
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0            vxlan0:2     0x0800 1500  98    10.0.0.1:0->10.0.0.2:0(icmp) skb_release_head_state                          skb_release_all
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0            vxlan0:2     0x0800 1500  98    10.0.0.1:0->10.0.0.2:0(icmp) sock_wfree                                      skb_release_head_state
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0            vxlan0:2     0x0800 1500  98    10.0.0.1:0->10.0.0.2:0(icmp) skb_release_data                                skb_release_all
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0            vxlan0:2     0x0800 1500  98    10.0.0.1:0->10.0.0.2:0(icmp) skb_free_head                                   skb_release_data
+0xffff9f0c9c08ff00 11  <empty>:2158561  4026532686 0            vxlan0:2     0x0800 1500  98    10.0.0.1:0->10.0.0.2:0(icmp) kfree_skbmem                                    kfree_skb_reason
