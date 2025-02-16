@@ -1,9 +1,8 @@
-
 nodes:
   - name: R1
     image: slankdev/frr
     interfaces:
-      - { name: net0, type: direct, args: R2#net0}
+      - { name: net0, type: direct, args: R2#net0 }
       - { name: net1, type: direct, args: C1#net0 }
       - { name: net2, type: direct, args: C2#net0 }
   - name: R2
@@ -43,7 +42,7 @@ node_configs:
       - cmd: >-
           ip link add vxlan100 type vxlan
           id 100 dstport 4789
-          local 10.0.0.1 remote 10.0.0.2
+          group 239.0.1.1 dev net0
 
       - cmd: ip link add br200 type bridge
       - cmd: ip link set dev br200 up
@@ -51,7 +50,7 @@ node_configs:
       - cmd: >-
           ip link add vxlan200 type vxlan
           id 200 dstport 4789
-          local 10.0.0.1 remote 10.0.0.2
+          group 239.0.1.1 dev net0
 
       - cmd: ip link set dev net1 master br100
       - cmd: ip link set dev net1 promisc on
@@ -85,7 +84,7 @@ node_configs:
       - cmd: >-
           ip link add vxlan100 type vxlan
           id 100 dstport 4789
-          local 10.0.0.2 remote 10.0.0.1
+          group 239.0.1.1 dev net0
 
       - cmd: ip link add br200 type bridge
       - cmd: ip link set dev br200 up
@@ -93,7 +92,7 @@ node_configs:
       - cmd: >-
           ip link add vxlan200 type vxlan
           id 200 dstport 4789
-          local 10.0.0.2 remote 10.0.0.1
+          group 239.0.1.1 dev net0
 
       - cmd: ip link set dev net1 master br100
       - cmd: ip link set dev net1 promisc on
@@ -137,5 +136,3 @@ node_configs:
       - cmd: ip link set net0 address 52:54:00:bb:04:00
       - cmd: ip addr add 10.200.2.4/16 dev net0
       - cmd: ip neigh add 10.200.1.2 lladdr 52:54:00:bb:02:00 dev net0
-
-
