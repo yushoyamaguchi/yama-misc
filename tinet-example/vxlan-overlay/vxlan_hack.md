@@ -1,0 +1,9 @@
+# Linux NativeのvxlanデバイスでvxlanのinnerをVMのものにする方法
+vxlanデバイスとtapを同じbridgeデバイスにアタッチすると、VMからのパケットをそのままvxlanデバイスから出せて、vxlanのinnerをVMのものにすることができる。
+bridgeにnicを接続するとnicがそのbiridbeデバイスのポートの口となり、nicにipアドレスはなくなる。
+つまり、vxlanデバイスとtapを同じbridgeデバイスにアタッチすると、vxlanデバイスもtapもipアドレスを持たなくなる。
+また、tapの口から来たパケットがvxlan-devの口から出ていくように、bridge-devに対して設定しなければいけない。
+これはfdbを使ってやる。
+VNIごとにvxlanデバイスを用意する必要がある。
+
+
