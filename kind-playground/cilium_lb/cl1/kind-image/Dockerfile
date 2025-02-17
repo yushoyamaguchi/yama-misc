@@ -31,6 +31,7 @@ RUN apt-get update && apt-get install -y \
     tshark \
     libnl-utils \
     wireguard-tools \
+    bsdmainutils \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
