@@ -114,15 +114,11 @@
       {% elif inventory_hostname == 'node2' %}
       {{ hostvars['node1']['public_key1'] }}
       {% elif inventory_hostname == 'node3' %}
-      {{ hostvars['node2']['public_key1'] }}
+      {{ hostvars['node1']['public_key1'] }}
       {% endif %}
     peer_public_key2: >-
       {% if inventory_hostname == 'node1' %}
       {{ hostvars['node2']['public_key1'] }}
-      {% elif inventory_hostname == 'node2' %}
-      {{ hostvars['node3']['public_key1'] }}
-      {% elif inventory_hostname == 'node3' %}
-      {{ hostvars['node1']['public_key1'] }}
       {% endif %}
     peer_endpoint1: >-
       {% if inventory_hostname == 'node1' %}
@@ -130,31 +126,23 @@
       {% elif inventory_hostname == 'node2' %}
       192.168.10.1
       {% elif inventory_hostname == 'node3' %}
-      192.168.10.2
+      192.168.10.1
       {% endif %}
     peer_endpoint2: >-
       {% if inventory_hostname == 'node1' %}
       192.168.10.2
-      {% elif inventory_hostname == 'node2' %}
-      192.168.10.3
-      {% elif inventory_hostname == 'node3' %}
-      192.168.10.1
       {% endif %}
     allowed_ips1: >-
       {% if inventory_hostname == 'node1' %}
       10.0.3.0/24
       {% elif inventory_hostname == 'node2' %}
-      10.0.1.0/24
+      10.0.0.0/16
       {% elif inventory_hostname == 'node3' %}
-      10.0.2.0/24
+      10.0.0.0/16
       {% endif %}
     allowed_ips2: >-
       {% if inventory_hostname == 'node1' %}
       10.0.2.0/24
-      {% elif inventory_hostname == 'node2' %}
-      10.0.3.0/24
-      {% elif inventory_hostname == 'node3' %}
-      10.0.1.0/24
       {% endif %}
     port1: >-
       {% if inventory_hostname == 'node1' %}
@@ -162,15 +150,11 @@
       {% elif inventory_hostname == 'node2' %}
       51812
       {% elif inventory_hostname == 'node3' %}
-      51823
+      51831
       {% endif %}
     port2: >-
       {% if inventory_hostname == 'node1' %}
       51812
-      {% elif inventory_hostname == 'node2' %}
-      51823
-      {% elif inventory_hostname == 'node3' %}
-      51831
       {% endif %}
 
   tasks:
@@ -184,6 +168,6 @@
       register: wg_interface_status
       ignore_errors: true
 
-    - name: Bring up WireGuard interfac1
+    - name: Bring up WireGuard interface
       command: wg-quick up wg0
       when: wg_interface_status.rc != 0
