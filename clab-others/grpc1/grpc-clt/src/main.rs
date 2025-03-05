@@ -8,7 +8,7 @@ pub mod hello_world {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create a channel to the server
-    let channel = tonic::transport::Channel::from_static("http://[::1]:50051")
+    let channel = tonic::transport::Channel::from_static("http://192.168.1.2:50051")
         .connect()
         .await?;
 
