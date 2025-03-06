@@ -3,65 +3,74 @@ use std::fs;
 use std::io::Read;
 use wireguard1::wire_guard_service_client::WireGuardServiceClient;
 use wireguard1::{WireGuardRequest, Overlay, WireGuardConfiguration, WireGuardPeer};
-use serde_json::Value;
+use serde::{Deserialize, Serialize};
 
 pub mod wireguard1 {
     tonic::include_proto!("wireguard1");
 }
 
-fn parse_json_to_wireguard_request(json_str: &str) -> Result<WireGuardRequest, Box<dyn std::error::Error>> {
-    let v: Value = serde_json::from_str(json_str)?;
-    
-    // Extract values from JSON
-    let id = v["id"].as_i64().unwrap_or(0) as i32;
-    
-    let mut overlays = Vec::new();
-    
-    for overlay_value in v["overlays"].as_array().unwrap_or(&Vec::new()) {
-        let overlay_type = overlay_value["type"].as_str().unwrap_or("").to_string();
-        
-        // Extract myself configuration
-        let myself_value = &overlay_value["myself"];
-        let myself = WireGuardConfiguration {
-            wg_address: myself_value["wg_address"].as_str().unwrap_or("").to_string(),
-            port: myself_value["port"].as_i64().unwrap_or(0) as i32,
-        };
-        
-        // Extract peer configuration
-        let peer_value = &overlay_value["peer"];
-        let mut allow_ips = Vec::new();
-        if let Some(allow_ips_array) = peer_value["allowips"].as_array() {
-            for ip in allow_ips_array {
-                allow_ips.push(ip.as_str().unwrap_or("").to_string());
-            }
+// JSON構造体の定義 - serde_deriveを使用
+#[derive(Debug, Deserialize, Serialize)]
+struct WireGuardRequestJson {
+    id: i32,
+    overlays: Vec<OverlayJson>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct OverlayJson {
+    #[serde(rename = "type")]
+    overlay_type: String,
+    myself: WireGuardConfigurationJson,
+    peer: WireGuardPeerJson,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct WireGuardConfigurationJson {
+    wg_address: String,
+    port: i32,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct WireGuardPeerJson {
+    endpoint_address: String,
+    endpoint_port: i32,
+    publickey: String,
+    allowips: Vec<String>,
+    persistentkeepalive: i32,
+}
+
+// JSONモデルからprotobufモデルへの変換機能
+impl From<WireGuardRequestJson> for WireGuardRequest {
+    fn from(json: WireGuardRequestJson) -> Self {
+        let overlays = json.overlays.into_iter()
+            .map(|overlay_json| {
+                Overlay {
+                    r#type: overlay_json.overlay_type,
+                    myself: Some(WireGuardConfiguration {
+                        wg_address: overlay_json.myself.wg_address,
+                        port: overlay_json.myself.port,
+                    }),
+                    peer: Some(WireGuardPeer {
+                        endpoint_address: overlay_json.peer.endpoint_address,
+                        endpoint_port: overlay_json.peer.endpoint_port,
+                        publickey: overlay_json.peer.publickey,
+                        allowips: overlay_json.peer.allowips,
+                        persistentkeepalive: overlay_json.peer.persistentkeepalive,
+                    }),
+                }
+            })
+            .collect();
+
+        WireGuardRequest {
+            id: json.id,
+            overlays,
         }
-        
-        let peer = WireGuardPeer {
-            endpoint_address: peer_value["endpoint_address"].as_str().unwrap_or("").to_string(),
-            endpoint_port: peer_value["endpoint_port"].as_i64().unwrap_or(0) as i32,
-            publickey: peer_value["publickey"].as_str().unwrap_or("").to_string(),
-            allowips: allow_ips,
-            persistentkeepalive: peer_value["persistentkeepalive"].as_i64().unwrap_or(0) as i32,
-        };
-        
-        let overlay = Overlay {
-            r#type: overlay_type,
-            myself: Some(myself),
-            peer: Some(peer),
-        };
-        
-        overlays.push(overlay);
     }
-    
-    Ok(WireGuardRequest {
-        id,
-        overlays,
-    })
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Get JSON file path from command line arguments
+    // コマンドライン引数からJSONファイルのパスを取得
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
         eprintln!("Usage: {} <json_file_path>", args[0]);
@@ -70,29 +79,32 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     let json_file_path = &args[1];
     
-    // Read the JSON file
+    // JSONファイルを読み込む
     let mut file = fs::File::open(json_file_path)?;
     let mut json_content = String::new();
     file.read_to_string(&mut json_content)?;
     
-    // Create a channel to the server
+    // JSONを直接デシリアライズ
+    let wireguard_json: WireGuardRequestJson = serde_json::from_str(&json_content)?;
+    
+    // ProtobufモデルへRustの型変換トレイトを使って変換
+    let wireguard_request = WireGuardRequest::from(wireguard_json);
+    
+    // サーバーへのチャネルを作成
     let channel = tonic::transport::Channel::from_static("http://192.168.1.2:50051")
         .connect()
         .await?;
 
-    // Create the client
+    // クライアントを作成
     let mut client = WireGuardServiceClient::new(channel);
-    
-    // Parse JSON to WireGuardRequest
-    let wireguard_request = parse_json_to_wireguard_request(&json_content)?;
     
     println!("Sending WireGuard configuration request...");
     
-    // Send the WireGuard configuration request
+    // WireGuard設定リクエストを送信
     let request = tonic::Request::new(wireguard_request);
     let response = client.configure_wire_guard(request).await?;
     
-    // Print the response
+    // レスポンスを表示
     println!("RESPONSE={:?}", response);
 
     Ok(())
@@ -104,7 +116,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_json_to_wireguard_request() {
+    fn test_deserialize_json_to_wireguard_request() {
         let json_str = r#"{
             "id": 12345,
             "overlays": [
@@ -127,23 +139,30 @@ mod tests {
             ]
         }"#;
 
-        let result = parse_json_to_wireguard_request(json_str).unwrap();
+        // JSONを直接デシリアライズ
+        let wireguard_json: WireGuardRequestJson = serde_json::from_str(json_str).unwrap();
         
-        // Check id
+        // JSONモデルを検証
+        assert_eq!(wireguard_json.id, 12345);
+        assert_eq!(wireguard_json.overlays.len(), 1);
+        assert_eq!(wireguard_json.overlays[0].overlay_type, "wireguard");
+        
+        // ProtobufモデルへRustの型変換トレイトを使って変換
+        let result = WireGuardRequest::from(wireguard_json);
+        
+        // Protobufモデルを検証
         assert_eq!(result.id, 12345);
-        
-        // Check overlays
         assert_eq!(result.overlays.len(), 1);
         
         let overlay = &result.overlays[0];
         assert_eq!(overlay.r#type, "wireguard");
         
-        // Check myself
+        // myselfを検証
         let myself = overlay.myself.as_ref().unwrap();
         assert_eq!(myself.wg_address, "10.0.0.2");
         assert_eq!(myself.port, 51820);
         
-        // Check peer
+        // peerを検証
         let peer = overlay.peer.as_ref().unwrap();
         assert_eq!(peer.endpoint_address, "192.168.1.1");
         assert_eq!(peer.endpoint_port, 51820);
@@ -152,6 +171,6 @@ mod tests {
         assert_eq!(peer.allowips[0], "10.0.0.0/24");
         assert_eq!(peer.persistentkeepalive, 25);
         
-        println!("All JSON parsing tests passed!");
+        println!("All JSON deserialization and conversion tests passed!");
     }
 }

@@ -280,6 +280,7 @@ name = "grpc-clt"
 version = "0.1.0"
 dependencies = [
  "prost",
+ "serde",
  "serde_json",
  "tokio",
  "tonic",
