@@ -1,0 +1,21 @@
+{
+    "id": 12345,
+    "overlays": [
+        {
+            "type": "wireguard",
+            "myself": {
+                "wg_address": "10.0.0.2",
+                "port": 51820
+            },
+            "peer": {
+                    "endpoint_address": "192.168.1.1",
+                    "endpoint_port" : 51820,
+                    "publickey": "pseudo-public-key",
+                    "allowips": [
+                        "10.0.0.0/24"
+                    ],
+                    "persistentkeepalive": 25
+            }
+        }
+    ]
+}

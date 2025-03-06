@@ -28,7 +28,11 @@ impl Greeter for MyGreeter {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+<<<<<<< HEAD
     let addr = "[::1]:50051".parse()?;
+=======
+    let addr = "192.168.1.2:50051".parse()?;
+>>>>>>> f34ca0dc08778b075e2a78dda89a679c82e4bb3e
     let greeter = MyGreeter::default();
 
     Server::builder()
