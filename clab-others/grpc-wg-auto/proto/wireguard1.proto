@@ -1,0 +1,47 @@
+syntax = "proto3";
+package wireguard1;
+
+service WireGuardService {
+    rpc ConfigureWireGuard (WireGuardRequest) returns (WireGuardResponse);
+    // You can keep the original method if needed
+    rpc SayHello (HelloRequest) returns (HelloReply);
+}
+
+// Original HelloWorld messages
+message HelloRequest {
+   string name = 1;
+}
+
+message HelloReply {
+    string message = 1;
+}
+
+// New WireGuard configuration messages
+message WireGuardRequest {
+    int32 id = 1;
+    repeated Overlay overlays = 2;
+}
+
+message WireGuardResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message Overlay {
+    string type = 1;  // "wireguard"
+    WireGuardConfiguration myself = 2;
+    WireGuardPeer peer = 3;
+}
+
+message WireGuardConfiguration {
+    string wg_address = 1;
+    int32 port = 2;
+}
+
+message WireGuardPeer {
+    string endpoint_address = 1;
+    int32 endpoint_port = 2;
+    string publickey = 3;
+    repeated string allowips = 4;
+    int32 persistentkeepalive = 5;
+}
