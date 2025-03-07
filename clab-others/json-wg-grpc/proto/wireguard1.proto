@@ -1,0 +1,28 @@
+syntax = "proto3";
+package wireguard1;
+
+service WireGuardService {
+    rpc ConfigureWireGuard (WireGuardRequest) returns (WireGuardResponse);
+    // You can keep the original method if needed
+    rpc SayHello (HelloRequest) returns (HelloReply);
+}
+
+// Original HelloWorld messages
+message HelloRequest {
+   string name = 1;
+}
+
+message HelloReply {
+    string message = 1;
+}
+
+// New WireGuard configuration messages
+message WireGuardRequest {
+    string json_payload = 1;
+}
+
+message WireGuardResponse {
+    bool success = 1;
+    string message = 2;
+}
+
