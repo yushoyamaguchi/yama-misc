@@ -1,0 +1,28 @@
+name: json-wg-grpc
+topology:
+  nodes:
+    client:
+      kind: linux
+      image: hataori:latest
+      binds:
+        - ../grpc-clt/target/release/grpc-clt:/usr/local/bin/grpc-clt
+        - ./wg-client-sample1.json:/usr/local/bin/wg-client-sample1.json
+      exec:
+        - ip addr add 192.168.1.1/24 dev eth1
+        - ip link set eth1 up
+        - chmod +x /usr/local/bin/grpc-clt
+    server:
+      kind: linux
+      image: hataori:latest
+      binds:
+        - ../grpc-svr/target/release/grpc-svr:/usr/local/bin/grpc-svr
+        - ./start-grpc-svr.sh:/usr/local/bin/start-grpc-svr.sh
+      exec:
+        - ip addr add 192.168.1.2/24 dev eth1
+        - ip link set eth1 up
+        - chmod +x /usr/local/bin/grpc-svr
+        - chmod +x /usr/local/bin/start-grpc-svr.sh
+        - /usr/local/bin/start-grpc-svr.sh
+
+  links:
+    - endpoints: ["client:eth1", "server:eth1"]
