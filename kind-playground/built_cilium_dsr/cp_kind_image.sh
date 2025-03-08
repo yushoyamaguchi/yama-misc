@@ -11,6 +11,7 @@ DEST_PATHS=(
     "built_cilium_wg/kind-image/Dockerfile"
     "cilium_lb/cl1/kind-image/Dockerfile"
     "cilium_wg_native_keepalive/kind-image/Dockerfile"
+    "built_v6_dsr/kind-image/Dockerfile"
     "../observability/kind-nginx-lb/kind-image/Dockerfile"
 )
 
