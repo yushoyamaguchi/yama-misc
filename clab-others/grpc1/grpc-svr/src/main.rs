@@ -16,10 +16,12 @@ impl Greeter for MyGreeter {
         &self,
         request: Request<HelloRequest>,
     ) -> Result<Response<HelloReply>, Status> {
-        println!("Got a request: {:?}", request);
+        let client_addr = request.remote_addr().map(|addr| addr.to_string()).unwrap_or_else(|| "unknown".to_string());
+
+        println!("Got a request from {}: {:?}", client_addr, request);
 
         let reply = hello_world::HelloReply {
-            message: format!("Hello {}!", request.into_inner().name).into(),
+            message: format!("Hello {}! Your address is {}", request.into_inner().name, client_addr),
         };
 
         Ok(Response::new(reply))
@@ -28,11 +30,7 @@ impl Greeter for MyGreeter {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-<<<<<<< HEAD
-    let addr = "[::1]:50051".parse()?;
-=======
-    let addr = "192.168.1.2:50051".parse()?;
->>>>>>> f34ca0dc08778b075e2a78dda89a679c82e4bb3e
+    let addr = "0.0.0.0:50051".parse()?;
     let greeter = MyGreeter::default();
 
     Server::builder()
