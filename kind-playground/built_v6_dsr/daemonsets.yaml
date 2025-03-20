@@ -26,7 +26,7 @@ metadata:
   name: "blue-pool"
 spec:
   blocks:
-  - cidr: "172.121.0.0/24"
+  - cidr: "fd00:1::/64"
 ---
 
 apiVersion: v1

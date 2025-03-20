@@ -2,7 +2,7 @@
 
 for i in {1..10}
 do
-  curl 172.121.0.0 &
+  curl [fd00:1::] &
 done
 
 wait

@@ -26,7 +26,7 @@ RUN apt-get update && apt-get install -y \
     tshark \
     libnl-utils \
     wireguard-tools \
-    nginx  # Nginxをインストール
+    nginx # Nginxをインストール
 
 RUN rm -rf /var/lib/apt/lists/*
 
@@ -36,8 +36,8 @@ RUN rm /etc/nginx/sites-enabled/default
 # 単純なHTMLファイルを作成
 RUN echo 'I am a nginx server.' > /var/www/html/index.html
 
-# Nginxのカスタム設定ファイルを作成
-RUN printf 'server {\n\tlisten 80;\n\tserver_name localhost;\n\n\tlocation / {\n\t\troot /var/www/html;\n\t\tindex index.html index.htm;\n\t}\n}' > /etc/nginx/sites-available/default.conf
+# Nginxのカスタム設定ファイルを作成 - IPv6サポートを追加
+RUN printf 'server {\n\tlisten 80;\n\tlisten [::]:80;\n\tserver_name localhost;\n\n\tlocation / {\n\t\troot /var/www/html;\n\t\tindex index.html index.htm;\n\t}\n}' > /etc/nginx/sites-available/default.conf
 
 # /etc/nginx/sites-available/default.confを有効にするためのシンボリックリンクを作成
 RUN ln -s /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled/default.conf

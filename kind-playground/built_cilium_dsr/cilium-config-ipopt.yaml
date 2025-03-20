@@ -33,7 +33,7 @@ ipam:
 
 # Cilium Routing
 routingMode: native
-ipv4NativeRoutingCIDR: 10.244.0.0/16
+ipv4NativeRoutingCIDR: 10.100.0.0/16
 enableIPv4Masquerade: true
 autoDirectNodeRoutes: true
 

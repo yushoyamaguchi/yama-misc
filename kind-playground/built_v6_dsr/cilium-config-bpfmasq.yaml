@@ -12,7 +12,7 @@ operator:
     suffix: ""
 
 bpf:
-  masquerade: false
+  masquerade: true
   monitorAggregation: none
 
 k8sServiceHost: kind-control-plane
