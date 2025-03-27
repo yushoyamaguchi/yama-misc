@@ -1,0 +1,43 @@
+# cilium-medium.yaml
+cluster:
+  name: kind-kind
+
+image:
+  override: "localhost:5000/cilium/cilium-dev:local"
+  pullPolicy: Never
+operator:
+  image:
+    override: "localhost:5000/cilium/operator-generic:local"
+    pullPolicy: Never
+    suffix: ""
+
+bpf:
+  masquerade: true
+  monitorAggregation: none
+
+k8sServiceHost: kind-control-plane
+k8sServicePort: 6443
+kubeProxyReplacement: true
+
+ipv4:
+  enabled: false
+ipv6:
+  enabled: true
+
+debug:
+  enabled: true
+  verbose: datapath
+
+ipam:
+  mode: kubernetes
+
+# Cilium Routing
+routingMode: native
+tunnelProtocol: geneve
+
+ipv6NativeRoutingCIDR: fd00:10:255::/48
+enableIPv4Masquerade: true
+autoDirectNodeRoutes: true
+
+loadBalancer:
+  algorithm: maglev
