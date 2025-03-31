@@ -35,6 +35,7 @@ make -C "${CILIUM_DIR}" kind-image
 
 echo "installing cilium"
 cilium install --wait --chart-directory="${CILIUM_DIR}"/install/kubernetes/cilium --values cilium-config-bpfmasq.yaml
+#cilium install --wait --version 1.17.2 --values cilium-config-bpfmasq.yaml
 
 kubectl -n kube-system wait --for=condition=Ready pod -l k8s-app=cilium --timeout=300s
 
