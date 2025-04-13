@@ -14,6 +14,7 @@ operator:
 bpf:
   masquerade: false
   monitorAggregation: none
+  hostLegacyRouting: false
 
 k8sServiceHost: kind-control-plane
 k8sServicePort: 6443
