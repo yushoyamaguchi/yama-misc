@@ -34,7 +34,7 @@ echo "building cilium image"
 make -C "${CILIUM_DIR}" kind-image
 
 echo "installing cilium"
-cilium install --wait --chart-directory="${CILIUM_DIR}"/install/kubernetes/cilium --values cilium-config.yaml
+cilium install --wait --chart-directory="${CILIUM_DIR}"/install/kubernetes/cilium --values cilium-config-v6-vip.yaml
 
 kubectl -n kube-system wait --for=condition=Ready pod -l k8s-app=cilium --timeout=300s
 
