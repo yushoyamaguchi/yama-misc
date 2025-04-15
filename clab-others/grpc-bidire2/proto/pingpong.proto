@@ -2,16 +2,25 @@ syntax = "proto3";
 
 package pingpong.streaming;
 
-// Interface exported by the server.
 service PingPonger {
-  // A Bidirectional streaming RPC.
   rpc PingPong(stream Ping) returns (stream Pong) {}
 }
 
 message Ping {
+  oneof kind {
+    DummyPing dummy = 1;
+    TruePing true_ping = 2;
+  }
+}
+
+message DummyPing {
+  string message = 1;
+}
+
+message TruePing {
   string message = 1;
 }
 
 message Pong {
-  uint32 pong = 2;
+  uint32 pong = 1;
 }

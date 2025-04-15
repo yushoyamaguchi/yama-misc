@@ -1,13 +1,11 @@
 use pb::ping_ponger_server::{PingPonger, PingPongerServer};
-use pb::{Ping, Pong};
+use pb::{Ping, Pong, ping::Kind};
 use std::sync::{Arc, RwLock};
 use tokio::sync::mpsc;
 use tokio_stream::{wrappers::ReceiverStream, StreamExt};
-use tonic::transport::Server;
 use tonic::{Request, Response, Status};
-use tokio::time::Duration;
 use tokio::time::sleep;
-
+use std::time::Duration;
 
 pub mod pb {
     tonic::include_proto!("pingpong.streaming");
@@ -30,28 +28,37 @@ impl PingPonger for PingPongService {
         let index = self.index.clone();
         let (tx, rx) = mpsc::channel(1000);
 
-        // クライアントからのpingを読み取り続けるが使わない（必要ならログ用途に）
+        // ping の受信をログ出力する（ただし dummy は無視）
         tokio::spawn(async move {
             while let Some(ping) = req_stream.next().await {
                 let ping = ping.unwrap();
-                println!("Message received (but ignored): {}", ping.message);
+                match ping.kind {
+                    Some(Kind::Dummy(d)) => {
+                        println!("Got dummy ping: {}", d.message);
+                    }
+                    Some(Kind::TruePing(tp)) => {
+                        println!("Got true ping: {}", tp.message);
+                    }
+                    None => {
+                        println!("No kind in ping");
+                    }
+                }
             }
         });
 
-        // 定期的にpongを送信
         let index_clone = index.clone();
         tokio::spawn(async move {
             loop {
                 let pong = {
                     let mut idx = index_clone.write().unwrap();
                     *idx += 1;
-                    *idx // u32はCopyなのでOK
+                    *idx
                 };
-        
+
                 if tx.send(Ok(Pong { pong })).await.is_err() {
                     break;
                 }
-        
+
                 sleep(Duration::from_secs(1)).await;
             }
         });
@@ -60,20 +67,20 @@ impl PingPonger for PingPongService {
     }
 }
 
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "0.0.0.0:10001".parse().unwrap();
     println!("PingPongServer listening on: {}", addr);
+
     let ping_ponger = PingPongService {
         index: Arc::new(RwLock::from(0)),
     };
+
     let service = PingPongerServer::new(ping_ponger);
-    Server::builder()
+    tonic::transport::Server::builder()
         .add_service(service)
         .serve(addr)
-        .await
-        .unwrap();
+        .await?;
 
     Ok(())
 }
