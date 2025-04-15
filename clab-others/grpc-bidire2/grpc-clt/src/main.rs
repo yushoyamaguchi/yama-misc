@@ -15,26 +15,22 @@ pub mod pb {
 }
 
 async fn play_ping_pong(client: &mut PingPongerClient<Channel>) {
-    let mut last_seen_pong: u32 = 0;
     let (tx, rx) = mpsc::channel(10000);
     let ack = ReceiverStream::new(rx);
     let response = client.ping_pong(Request::new(ack)).await.unwrap();
 
-    let message = format!("last seen pong: {}", last_seen_pong);
-    // kick start the pingpong with an init tx.send
-    tx.send(Ping { message }).await.unwrap();
+    // kick start: 最初のダミー ping
+    tx.send(Ping { message: "init".into() }).await.unwrap();
+
     let mut pong_stream = response.into_inner();
     while let Some(pong) = pong_stream.next().await {
         let pong = pong.unwrap();
-        last_seen_pong = pong.pong;
-        println!("last seen pong from server: {}", last_seen_pong);
-        let message = format!("last seen pong: {}", last_seen_pong);
+        println!("last seen pong from server: {}", pong.pong);
+        let message = format!("pongを受信したので返信: {}", pong.pong);
         tx.send(Ping { message }).await.unwrap();
-        
-        // Add 1-second sleep
-        sleep(Duration::from_secs(1)).await;
     }
 }
+
 
 #[tokio::main]
 async fn main() {

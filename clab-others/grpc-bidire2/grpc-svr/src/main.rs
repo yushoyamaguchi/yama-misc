@@ -5,6 +5,9 @@ use tokio::sync::mpsc;
 use tokio_stream::{wrappers::ReceiverStream, StreamExt};
 use tonic::transport::Server;
 use tonic::{Request, Response, Status};
+use tokio::time::Duration;
+use tokio::time::sleep;
+
 
 pub mod pb {
     tonic::include_proto!("pingpong.streaming");
@@ -18,6 +21,7 @@ pub struct PingPongService {
 #[tonic::async_trait]
 impl PingPonger for PingPongService {
     type PingPongStream = ReceiverStream<Result<Pong, Status>>;
+
     async fn ping_pong(
         &self,
         request: Request<tonic::Streaming<Ping>>,
@@ -26,20 +30,36 @@ impl PingPonger for PingPongService {
         let index = self.index.clone();
         let (tx, rx) = mpsc::channel(1000);
 
+        // クライアントからのpingを読み取り続けるが使わない（必要ならログ用途に）
         tokio::spawn(async move {
             while let Some(ping) = req_stream.next().await {
                 let ping = ping.unwrap();
-                println!("Message recieved: {}", ping.message);
-                let num_str = ping.message.split(':').next_back().unwrap();
-                let num: u32 = num_str.trim().parse().unwrap();
-                *index.write().unwrap() = num + 1;
-                let pong = *index.read().unwrap();
-                tx.send(Ok(Pong { pong })).await.unwrap();
+                println!("Message received (but ignored): {}", ping.message);
             }
         });
+
+        // 定期的にpongを送信
+        let index_clone = index.clone();
+        tokio::spawn(async move {
+            loop {
+                let pong = {
+                    let mut idx = index_clone.write().unwrap();
+                    *idx += 1;
+                    *idx // u32はCopyなのでOK
+                };
+        
+                if tx.send(Ok(Pong { pong })).await.is_err() {
+                    break;
+                }
+        
+                sleep(Duration::from_secs(1)).await;
+            }
+        });
+
         Ok(Response::new(ReceiverStream::new(rx)))
     }
 }
+
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
