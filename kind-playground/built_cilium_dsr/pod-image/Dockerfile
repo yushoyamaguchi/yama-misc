@@ -37,7 +37,7 @@ RUN rm /etc/nginx/sites-enabled/default
 RUN echo 'I am a nginx server.' > /var/www/html/index.html
 
 # Nginxのカスタム設定ファイルを作成
-RUN printf 'server {\n\tlisten 80;\n\tserver_name localhost;\n\n\tlocation / {\n\t\troot /var/www/html;\n\t\tindex index.html index.htm;\n\t}\n}' > /etc/nginx/sites-available/default.conf
+RUN printf 'server {\n\tlisten 80;\n\tlisten [::]:80;\n\tserver_name localhost;\n\n\tlocation / {\n\t\troot /var/www/html;\n\t\tindex index.html index.htm;\n\t}\n}' > /etc/nginx/sites-available/default.conf
 
 # /etc/nginx/sites-available/default.confを有効にするためのシンボリックリンクを作成
 RUN ln -s /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled/default.conf

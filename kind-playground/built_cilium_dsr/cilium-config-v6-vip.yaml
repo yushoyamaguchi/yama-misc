@@ -12,7 +12,7 @@ operator:
     suffix: ""
 
 bpf:
-  masquerade: true
+  masquerade: false
   monitorAggregation: none
   hostLegacyRouting: false
 
