@@ -7,7 +7,6 @@ nodes:
       - { name: net0, type: direct, args: RR#net0 }
       - { name: net1, type: direct, args: R1#net0 }
       - { name: net2, type: direct, args: R2#net0 }
-      - { name: net3, type: direct, args: R3#net0 }
 
   - name: RR
     image: slankdev/frr
@@ -26,12 +25,6 @@ nodes:
       - { name: net0, type: direct, args: bridge#net2 }
       - { name: net1, type: direct, args: C3#net0 }
       - { name: net2, type: direct, args: C4#net0 }
-  - name: R3
-    image: slankdev/frr
-    interfaces:
-      - { name: net0, type: direct, args: bridge#net3 }
-      - { name: net1, type: direct, args: C5#net0 }
-      - { name: net2, type: direct, args: C6#net0 }
 
   - name: C1
     image: slankdev/ubuntu:18.04
@@ -45,12 +38,6 @@ nodes:
   - name: C4
     image: slankdev/ubuntu:18.04
     interfaces: [ { name: net0, type: direct, args: R2#net2 } ]
-  - name: C5
-    image: slankdev/ubuntu:18.04
-    interfaces: [ { name: net0, type: direct, args: R3#net1 } ]
-  - name: C6
-    image: slankdev/ubuntu:18.04
-    interfaces: [ { name: net0, type: direct, args: R3#net2 } ]
 
 node_configs:
   - name: bridge
@@ -213,35 +200,6 @@ node_configs:
           -c "ip route 10.255.0.3/32 10.0.0.3"
           -c "router bgp 65001"
           -c "  bgp router-id 10.255.0.2"
-          -c "  neighbor 10.255.0.254 remote-as internal"
-          -c "  neighbor 10.255.0.254 update-source lo"
-          -c "  address-family l2vpn evpn"
-          -c "   neighbor 10.255.0.254 activate"
-          -c "   advertise-all-vni"
-          -c "  exit-address-family"
-
-  - name: R3
-    cmds:
-
-      - cmd: bash -c "enable_seg6_router.py | sh"
-      - cmd: ip link set net0 address 52:54:00:aa:03:00
-      - cmd: ip link set net1 address 52:54:00:aa:03:01
-      - cmd: ip link set net2 address 52:54:00:aa:03:02
-      - cmd: /usr/lib/frr/frr start
-
-      - cmd: >-
-          vtysh -c "conf t"
-          -c "int lo"
-          -c " ip address 10.255.0.3/32"
-          -c " exit"
-          -c "int net0"
-          -c " ip address 10.0.0.3/24"
-          -c " exit"
-          -c "ip route 10.255.0.254/32 10.0.0.254"
-          -c "ip route 10.255.0.1/32 10.0.0.1"
-          -c "ip route 10.255.0.2/32 10.0.0.2"
-          -c "router bgp 65001"
-          -c "  bgp router-id 10.255.0.3"
           -c "  neighbor 10.255.0.254 remote-as internal"
           -c "  neighbor 10.255.0.254 update-source lo"
           -c "  address-family l2vpn evpn"
