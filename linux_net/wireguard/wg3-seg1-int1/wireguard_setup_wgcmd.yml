@@ -1,0 +1,227 @@
+- hosts: wireguard_nodes
+  gather_facts: false
+  vars:
+    ansible_connection: docker
+    ansible_host: clab-wg3-seg1-int1-{{ inventory_hostname }}
+  tasks:
+    - name: Check if /tmp/.ansible/tmp directory exists
+      raw: test -d /tmp/.ansible/tmp
+      register: tmp_dir_check
+      changed_when: false
+      failed_when: false
+
+    - name: Ensure /tmp/.ansible/tmp directory exists
+      raw: mkdir -p /tmp/.ansible/tmp && chmod 0755 /tmp/.ansible/tmp
+      when: tmp_dir_check.rc != 0
+
+    - name: Check if Python 3 is installed
+      raw: which python3
+      register: python3_check
+      changed_when: false
+      failed_when: false
+
+    - name: Install Python 3 on Alpine Linux
+      raw: apk add --no-cache python3
+      when: python3_check.rc != 0
+
+    - name: Check if python symlink exists
+      raw: test -L /usr/bin/python && readlink /usr/bin/python | grep -q "python3"
+      register: python_symlink_check
+      changed_when: false
+      failed_when: false
+
+    - name: Symlink python to python3
+      raw: ln -sf /usr/bin/python3 /usr/bin/python
+      when: python_symlink_check.rc != 0
+
+    - name: Set ansible_python_interpreter to use Python 3
+      set_fact:
+        ansible_python_interpreter: /usr/bin/python3
+
+    - name: Gather facts now that Python is installed
+      setup:
+
+- hosts: wireguard_nodes
+  tasks:
+    - name: Enable IP forwarding
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: 1
+        state: present
+        sysctl_set: yes
+
+    - name: Check if WireGuard tools are installed
+      command: which wg
+      register: wg_check
+      changed_when: false
+      failed_when: false
+
+    - name: Install WireGuard tools
+      raw: apk add --no-cache wireguard-tools
+      when: wg_check.rc != 0
+
+    - name: Check if private key1 exists
+      stat:
+        path: /etc/wireguard/privatekey1
+      register: privatekey1_stat
+
+    - name: Generate private key1
+      shell: wg genkey > /etc/wireguard/privatekey1
+      when: not privatekey1_stat.stat.exists
+
+    - name: Retrieve private key1
+      command: cat /etc/wireguard/privatekey1
+      register: wg_privatekey1
+      changed_when: false
+
+    - name: Save private key1 as a fact
+      set_fact:
+        private_key1: "{{ wg_privatekey1.stdout }}"
+      no_log: true
+
+    - name: Check if public key1 exists
+      stat:
+        path: /etc/wireguard/publickey1
+      register: publickey1_stat  
+
+    - name: Generate public key1
+      shell: cat /etc/wireguard/privatekey1 | wg pubkey > /etc/wireguard/publickey1
+      when: not publickey1_stat.stat.exists
+
+    - name: Retrieve public key1
+      command: cat /etc/wireguard/publickey1
+      register: wg_publickey1
+      changed_when: false
+
+    - name: Save public key1 as a fact
+      set_fact:
+        public_key1: "{{ wg_publickey1.stdout }}"
+
+
+- hosts: wireguard_nodes
+  vars:
+    # ──────────────────────────
+    # 既存のテンプレートで使っていた変数を再利用
+    # ──────────────────────────
+    wg_address1: >-
+      {% if inventory_hostname == 'node1' %} 10.0.1.1/24
+      {% elif inventory_hostname == 'node2' %} 10.0.2.2/24
+      {% elif inventory_hostname == 'node3' %} 10.0.3.3/24
+      {% endif %}
+
+    peer_public_key1: >-
+      {% if inventory_hostname == 'node1' %} {{ hostvars['node3']['public_key1'] }}
+      {% elif inventory_hostname == 'node2' %} {{ hostvars['node1']['public_key1'] }}
+      {% elif inventory_hostname == 'node3' %} {{ hostvars['node2']['public_key1'] }}
+      {% endif %}
+
+    peer_public_key2: >-
+      {% if inventory_hostname == 'node1' %} {{ hostvars['node2']['public_key1'] }}
+      {% elif inventory_hostname == 'node2' %} {{ hostvars['node3']['public_key1'] }}
+      {% elif inventory_hostname == 'node3' %} {{ hostvars['node1']['public_key1'] }}
+      {% endif %}
+
+    peer_endpoint1: >-
+      {% if inventory_hostname == 'node1' %} 192.168.10.3:51820
+      {% elif inventory_hostname == 'node2' %} 192.168.10.1:51820
+      {% elif inventory_hostname == 'node3' %} 192.168.10.2:51820
+      {% endif %}
+
+    peer_endpoint2: >-
+      {% if inventory_hostname == 'node1' %} 192.168.10.2:51820
+      {% elif inventory_hostname == 'node2' %} 192.168.10.3:51820
+      {% elif inventory_hostname == 'node3' %} 192.168.10.1:51820
+      {% endif %}
+
+    allowed_ips1: >-
+      {% if inventory_hostname == 'node1' %} 10.0.3.0/24
+      {% elif inventory_hostname == 'node2' %} 10.0.1.0/24
+      {% elif inventory_hostname == 'node3' %} 10.0.2.0/24
+      {% endif %}
+
+    allowed_ips2: >-
+      {% if inventory_hostname == 'node1' %} 10.0.2.0/24
+      {% elif inventory_hostname == 'node2' %} 10.0.3.0/24
+      {% elif inventory_hostname == 'node3' %} 10.0.1.0/24
+      {% endif %}
+
+    # 外向けに開けるポート（ピアが接続してくる側）
+    listen_port: 51820
+
+    # 秘密鍵は前段タスクで /etc/wireguard/privatekey1 に保存済み
+    privkey_path: /etc/wireguard/privatekey1
+
+  tasks:
+    # -------------------------
+    # インターフェース生成（idempotent）
+    # -------------------------
+    - name: Detect whether wg0 already exists
+      command: ip link show wg0
+      register: wg0_link
+      failed_when: false
+      changed_when: false
+
+    - name: Create wg0 interface if missing
+      command: ip link add dev wg0 type wireguard
+      when: wg0_link.rc != 0
+
+    # -------------------------
+    # 基本パラメータ設定
+    # -------------------------
+    - name: Apply private key & listen-port
+      command: >
+        wg set wg0
+        private-key {{ privkey_path }}
+        listen-port {{ listen_port }}
+
+    - name: Ensure address {{ wg_address1 }} is present on wg0
+      shell: |
+        ip address show dev wg0 | grep -q '{{ wg_address1.split("/")[0] }}' ||
+        ip address add {{ wg_address1 }} dev wg0
+      changed_when: "'dev wg0' not in ip_addr_check.stdout"
+      register: ip_addr_check
+      failed_when: false
+
+    - name: Configure peer-1
+      command:
+        argv:
+          - wg
+          - set
+          - wg0
+          - peer
+          - "{{ peer_public_key1 | trim }}"
+          - endpoint
+          - "{{ peer_endpoint1 | trim }}"
+          - allowed-ips
+          - "{{ allowed_ips1 | trim }}"
+
+    - name: Configure peer-2
+      command:
+        argv:
+          - wg
+          - set
+          - wg0
+          - peer
+          - "{{ peer_public_key2 | trim }}"
+          - endpoint
+          - "{{ peer_endpoint2 | trim }}"
+          - allowed-ips
+          - "{{ allowed_ips2 | trim }}"
+
+    # -------------------------
+    # インターフェースを UP
+    # -------------------------
+    - name: Bring wg0 up
+      command: ip link set up dev wg0
+
+    - name: Add route to peer-1 network via wg0
+      command: >
+        ip route add {{ allowed_ips1 }} dev wg0
+      register: route1_add
+      failed_when: false
+
+    - name: Add route to peer-2 network via wg0
+      command: >
+        ip route add {{ allowed_ips2 }} dev wg0
+      register: route2_add
+      failed_when: false
