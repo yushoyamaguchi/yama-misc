@@ -1,4 +1,4 @@
-apiVersion: "cilium.io/v2alpha1"
+apiVersion: "cilium.io/v2"
 kind: CiliumBGPClusterConfig
 metadata:
   name: control-plane
@@ -16,7 +16,7 @@ spec:
           peerConfigRef:
             name: "cilium-peer"
 ---
-apiVersion: "cilium.io/v2alpha1"
+apiVersion: "cilium.io/v2"
 kind: CiliumBGPClusterConfig
 metadata:
   name: worker
@@ -36,7 +36,7 @@ spec:
 
 ---
 
-apiVersion: cilium.io/v2alpha1
+apiVersion: "cilium.io/v2"
 kind: CiliumBGPPeerConfig
 metadata:
   name: cilium-peer
