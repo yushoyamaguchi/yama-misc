@@ -1,0 +1,6 @@
+cluster:
+  network:
+    cni:
+      name: none          # Flannel を入れない
+  proxy:
+    disabled: true
