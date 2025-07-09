@@ -20,6 +20,10 @@ destroy:
 
 install-cilium:
 	make -C $(CILIUM_DIR) kind-image
+	cilium install --wait --chart-directory=$(CILIUM_DIR)/install/kubernetes/cilium --values cilium-dev.yaml
+
+install-cilium-dev:
+	make -C $(CILIUM_DIR) kind-image
 	cilium install --wait --chart-directory=$(CILIUM_DIR)/install/kubernetes/cilium --values cilium-config-dev.yaml
 
 wait-for-cilium:
@@ -37,8 +41,13 @@ netshoot-daemonset:
 
 setup: build-kind-image deploy-cluster install-cilium wait-for-cilium apply-policy netshoot-daemonset
 
+dev-setup: build-kind-image deploy-cluster install-cilium-dev wait-for-cilium apply-policy netshoot-daemonset
+
 
 dup-setup: build-kind-image deploy-cluster-dup install-cilium wait-for-cilium apply-policy-dup netshoot-daemonset
+
+bgp-override:
+	kubectl apply -f bgp-override.yaml
 
 
 
@@ -58,3 +67,6 @@ ping-c-w:
 	CONTROL_PLANE_POD=$$(kubectl get pods -n $(NAMESPACE) -l $(POD_LABEL) -o jsonpath='{.items[?(@.spec.nodeName=="$(CONTROL_PLANE_NODE)")].metadata.name}'); \
 	WORKER_IP=$$(kubectl get pod $$WORKER_POD -n $(NAMESPACE) -o jsonpath='{.status.podIP}'); \
 	kubectl exec -n $(NAMESPACE) $$CONTROL_PLANE_POD -- ping -c 3 -w 4 $$WORKER_IP
+
+check-bgp-info-in-cilium:
+	kubectl get ciliumbgpnodeconfigs -o yaml

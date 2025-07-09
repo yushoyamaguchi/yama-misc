@@ -14,6 +14,9 @@ routingMode: native
 
 bgpControlPlane:
   enabled: true
+  routerIDAllocation:
+    mode: "ip-pool"
+    ipPool: "1.1.1.0/24"
 
 ipv4NativeRoutingCIDR: 10.0.0.0/8
 

@@ -1,0 +1,8 @@
+apiVersion: cilium.io/v2
+kind: CiliumBGPNodeConfigOverride
+metadata:
+  name: bgp-cplane-dev-v4-control-plane
+spec:
+  bgpInstances:
+    - name: "instance-65001"
+      routerID: "1.1.1.100"
