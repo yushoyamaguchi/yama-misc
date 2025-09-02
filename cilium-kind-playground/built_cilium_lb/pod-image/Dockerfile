@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     wget \
     dnsutils \
+    iptables \
     ethtool \
     iftop \
     nftables \

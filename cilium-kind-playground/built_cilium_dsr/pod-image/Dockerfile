@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     wget \
     dnsutils \
+    iptables \
     ethtool \
     iftop \
     nftables \
@@ -41,6 +42,3 @@ RUN printf 'server {\n\tlisten 80;\n\tlisten [::]:80;\n\tserver_name localhost;\
 
 # /etc/nginx/sites-available/default.confを有効にするためのシンボリックリンクを作成
 RUN ln -s /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled/default.conf
-
-# Nginxをフォアグラウンドで実行
-CMD ["nginx", "-g", "daemon off;"]
