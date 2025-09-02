@@ -15,8 +15,11 @@ spec:
     spec:
       containers:
       - name: nginx1
-        image: docker.io/library/my-netshoot-nginx:v1
+        image: docker.io/library/my-netshoot-nginx:v2
         imagePullPolicy: IfNotPresent
+        command: ["/bin/bash", "-c", "iptables -A INPUT -p tcp --dport 55555 -j REJECT --reject-with icmp-port-unreachable; ip link set eth0 mtu 600 && exec nginx -g 'daemon off;'"]
+        securityContext:
+          privileged: true
 
 ---
 
@@ -36,8 +39,17 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-    - port: 80
+    - name: http
+      port: 80
       targetPort: 80
       protocol: TCP
+    - name: tcp-test
+      port: 55555
+      targetPort: 55555
+      protocol: TCP
+    - name: udp-test
+      port: 55555
+      targetPort: 55555
+      protocol: UDP
   selector:
     app: nginx1

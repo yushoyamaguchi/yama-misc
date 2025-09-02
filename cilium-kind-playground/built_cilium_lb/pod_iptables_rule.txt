@@ -1,0 +1,1 @@
+iptables -A INPUT -p tcp --dport 80 -m ttl --ttl-lt 6 -j REJECT --reject-with icmp-port-unreachable
