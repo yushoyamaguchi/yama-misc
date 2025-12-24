@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Default value
-DEFAULT_CILIUM_DIR="/srv/unbound-sub/cilium"
+DEFAULT_CILIUM_DIR="/home/yusho/cilium"
 KIND_IMAGE="custom-kind-node:v1.29.0-network-tools2"
 NETSHOOT_NGINX_IMAGE="my-netshoot-nginx:v2"
 
