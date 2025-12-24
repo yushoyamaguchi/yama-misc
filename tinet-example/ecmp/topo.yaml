@@ -64,10 +64,14 @@ node_configs:
       - cmd: >-
           vtysh -c 'conf t'
           -c 'router bgp 100'
+          -c 'no bgp ebgp-requires-policy'
           -c ' bgp router-id 10.255.0.1'
           -c ' neighbor 10.0.0.10 remote-as 100'
           -c ' neighbor 10.0.0.20 remote-as 100'
           -c ' neighbor 10.0.0.30 remote-as 100'
+          -c ' address-family ipv4 unicast'
+          -c '  redistribute connected'
+          -c ' exit-address-family'
       - cmd: vtysh -c "do write mem"
   - name: R1
     cmds:
@@ -80,9 +84,13 @@ node_configs:
       - cmd: >-
           vtysh -c 'conf t'
           -c 'router bgp 100'
+          -c 'no bgp ebgp-requires-policy'
           -c ' bgp router-id 10.255.0.10'
           -c ' neighbor 10.0.0.1 remote-as 100'
           -c ' network 192.168.0.2/32'
+          -c ' address-family ipv4 unicast'
+          -c '  redistribute connected'
+          -c ' exit-address-family'
   - name: S1
     cmds:
       - cmd: ip addr add 192.168.0.2/24 dev net0
@@ -100,9 +108,13 @@ node_configs:
       - cmd: >-
           vtysh -c 'conf t'
           -c 'router bgp 100'
+          -c 'no bgp ebgp-requires-policy'
           -c ' bgp router-id 10.255.0.20'
           -c ' neighbor 10.0.0.1 remote-as 100'
           -c ' network 192.168.0.2/32'
+          -c ' address-family ipv4 unicast'
+          -c '  redistribute connected'
+          -c ' exit-address-family'
   - name: S2
     cmds:
       - cmd: ip addr add 192.168.0.2/24 dev net0
@@ -120,9 +132,13 @@ node_configs:
       - cmd: >-
           vtysh -c 'conf t'
           -c 'router bgp 100'
+          -c 'no bgp ebgp-requires-policy'
           -c ' bgp router-id 10.255.0.30'
           -c ' neighbor 10.0.0.1 remote-as 100'
           -c ' network 192.168.0.2/32'
+          -c ' address-family ipv4 unicast'
+          -c '  redistribute connected'
+          -c ' exit-address-family'
   - name: S3
     cmds:
       - cmd: ip addr add 192.168.0.2/24 dev net0
