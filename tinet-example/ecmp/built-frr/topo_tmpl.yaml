@@ -4,13 +4,13 @@ nodes:
     interfaces:
       - { name: net0, type: direct, args: R0#net1 }
   - name: R0
-    image: frrouting/frr
+    image: frr:centos-8-2fcb0b28ba 
     docker_run_extra_args: --entrypoint bash
     interfaces:
       - { name: net1, type: direct, args: S0#net0 }
       - { name: net0, type: bridge, args: B0 }
   - name: R1
-    image: frrouting/frr
+    image: frr:centos-8-2fcb0b28ba 
     docker_run_extra_args: --entrypoint bash
     interfaces:
       - { name: net0, type: bridge, args: B0 }
@@ -20,7 +20,7 @@ nodes:
     interfaces:
       - { name: net0, type: direct, args: R1#net1 }
   - name: R2
-    image: frrouting/frr
+    image: frr:centos-8-2fcb0b28ba 
     docker_run_extra_args: --entrypoint bash
     interfaces:
       - { name: net0, type: bridge, args: B0 }
@@ -30,7 +30,7 @@ nodes:
     interfaces:
       - { name: net0, type: direct, args: R2#net1 }
   - name: R3
-    image: frrouting/frr
+    image: frr:centos-8-2fcb0b28ba 
     docker_run_extra_args: --entrypoint bash
     interfaces:
       - { name: net0, type: bridge, args: B0 }
