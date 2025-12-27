@@ -1,0 +1,160 @@
+nodes:
+  - name: S0
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R0#net0 }
+  - name: R0
+    image: frrouting/frr
+    docker_run_extra_args: --entrypoint bash
+    interfaces:
+      - { name: net0, type: direct, args: S0#net0 }
+      - { name: net1, type: direct, args: R1#net0 }
+      - { name: net2, type: direct, args: R2#net0 }
+      - { name: net3, type: direct, args: R3#net0 }
+  - name: R1
+    image: frrouting/frr
+    docker_run_extra_args: --entrypoint bash
+    interfaces:
+      - { name: net0, type: direct, args: R0#net1 }
+      - { name: net1, type: direct, args: S1#net0 }
+  - name: S1
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R1#net1 }
+  - name: R2
+    image: frrouting/frr
+    docker_run_extra_args: --entrypoint bash
+    interfaces:
+      - { name: net0, type: direct, args: R0#net2 }
+      - { name: net1, type: direct, args: S2#net0 }
+  - name: S2
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R2#net1 }
+  - name: R3
+    image: frrouting/frr
+    docker_run_extra_args: --entrypoint bash
+    interfaces:
+      - { name: net0, type: direct, args: R0#net3 }
+      - { name: net1, type: direct, args: S3#net0 }
+  - name: S3
+    image: slankdev/frr
+    interfaces:
+      - { name: net0, type: direct, args: R3#net1 }
+
+node_configs:
+  - name: S0
+    cmds:
+      - cmd: ip addr add 10.1.0.2/24 dev net0
+      - cmd: ip route replace default via 10.1.0.1
+  - name: R0
+    cmds:
+      - cmd: sed -i -e 's/bgpd=no/bgpd=yes/g' /etc/frr/daemons
+      - cmd: sysctl -w 'net.ipv4.fib_multipath_hash_policy=1'
+      - cmd: /usr/lib/frr/frrinit.sh start
+      - cmd: ip addr add 10.255.0.1/32 dev lo
+      - cmd: ip addr add 10.1.0.1/24 dev net0
+      - cmd: ip addr add 10.0.1.1/30 dev net1
+      - cmd: ip addr add 10.0.2.1/30 dev net2
+      - cmd: ip addr add 10.0.3.1/30 dev net3
+      - cmd: >-
+          vtysh -c 'conf t'
+          -c 'router bgp 100'
+          -c 'no bgp ebgp-requires-policy'
+          -c ' bgp router-id 10.255.0.1'
+          -c ' neighbor 10.0.1.2 remote-as 100'
+          -c ' neighbor 10.0.2.2 remote-as 100'
+          -c ' neighbor 10.0.3.2 remote-as 100'
+          -c ' address-family ipv4 unicast'
+          -c '  redistribute connected'
+          -c ' exit-address-family'
+      - cmd: vtysh -c "do write mem"
+  - name: R1
+    cmds:
+      - cmd: sed -i -e 's/bgpd=no/bgpd=yes/g' /etc/frr/daemons
+      - cmd: /usr/lib/frr/frrinit.sh start
+      - cmd: ip addr add 10.255.0.10/32 dev lo
+      - cmd: ip addr add 10.0.1.2/30 dev net0
+      - cmd: ip addr add 192.168.0.1/24 dev net1
+      - cmd: >-
+          vtysh -c 'conf t'
+          -c 'router bgp 100'
+          -c 'no bgp ebgp-requires-policy'
+          -c ' bgp router-id 10.255.0.10'
+          -c ' neighbor 10.0.1.1 remote-as 100'
+          -c ' network 192.168.0.2/32'
+          -c ' address-family ipv4 unicast'
+          -c '  redistribute connected'
+          -c ' exit-address-family'
+  - name: S1
+    cmds:
+      - cmd: ip addr add 192.168.0.2/24 dev net0
+      - cmd: ip route replace default via 192.168.0.1
+      - cmd: sh -c "echo S1 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+  - name: R2
+    cmds:
+      - cmd: sed -i -e 's/bgpd=no/bgpd=yes/g' /etc/frr/daemons
+      - cmd: /usr/lib/frr/frrinit.sh start
+      - cmd: ip addr add 10.255.0.20/32 dev lo
+      - cmd: ip addr add 10.0.2.2/30 dev net0
+      - cmd: ip addr add 192.168.0.1/24 dev net1
+      - cmd: >-
+          vtysh -c 'conf t'
+          -c 'router bgp 100'
+          -c 'no bgp ebgp-requires-policy'
+          -c ' bgp router-id 10.255.0.20'
+          -c ' neighbor 10.0.2.1 remote-as 100'
+          -c ' network 192.168.0.2/32'
+          -c ' address-family ipv4 unicast'
+          -c '  redistribute connected'
+          -c ' exit-address-family'
+  - name: S2
+    cmds:
+      - cmd: ip addr add 192.168.0.2/24 dev net0
+      - cmd: ip route replace default via 192.168.0.1
+      - cmd: sh -c "echo S2 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+  - name: R3
+    cmds:
+      - cmd: sed -i -e 's/bgpd=no/bgpd=yes/g' /etc/frr/daemons
+      - cmd: /usr/lib/frr/frrinit.sh start
+      - cmd: ip addr add 10.255.0.30/32 dev lo
+      - cmd: ip addr add 10.0.3.2/30 dev net0
+      - cmd: ip addr add 192.168.0.1/24 dev net1
+      - cmd: >-
+          vtysh -c 'conf t'
+          -c 'router bgp 100'
+          -c 'no bgp ebgp-requires-policy'
+          -c ' bgp router-id 10.255.0.30'
+          -c ' neighbor 10.0.3.1 remote-as 100'
+          -c ' network 192.168.0.2/32'
+          -c ' address-family ipv4 unicast'
+          -c '  redistribute connected'
+          -c ' exit-address-family'
+  - name: S3
+    cmds:
+      - cmd: ip addr add 192.168.0.2/24 dev net0
+      - cmd: ip route replace default via 192.168.0.1
+      - cmd: sh -c "echo S3 > index.html"
+      - cmd: nohup python3 -m http.server 80 &
+
+test:
+  - cmds:
+    # local link
+    - cmd: docker exec S0 ping -c2 10.1.0.1
+    - cmd: docker exec S1 ping -c2 192.168.0.1
+    - cmd: docker exec S2 ping -c2 192.168.0.1
+    - cmd: docker exec S3 ping -c2 192.168.0.1
+    - cmd: docker exec R0 ping -c2 10.1.0.2
+    - cmd: docker exec R0 ping -c2 10.0.1.2
+    - cmd: docker exec R0 ping -c2 10.0.2.2
+    - cmd: docker exec R0 ping -c2 10.0.3.2
+    - cmd: docker exec R1 ping -c2 192.168.0.2
+    - cmd: docker exec R1 ping -c2 10.0.1.1
+    - cmd: docker exec R2 ping -c2 192.168.0.2
+    - cmd: docker exec R2 ping -c2 10.0.2.1
+    - cmd: docker exec R3 ping -c2 192.168.0.2
+    - cmd: docker exec R3 ping -c2 10.0.3.1
+    # remote link
+    - cmd: docker exec S0 ping -c2 192.168.0.2
