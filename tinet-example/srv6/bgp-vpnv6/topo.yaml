@@ -54,7 +54,6 @@ node_configs:
         -c 'log file /tmp/frr.log'
         -c 'debug bgp neighbor-events'
         -c 'debug bgp zebra'
-        -c 'debug bgp vnc verbose'
         -c 'debug bgp update-groups'
         -c 'debug bgp updates in'
         -c 'debug bgp updates out'
