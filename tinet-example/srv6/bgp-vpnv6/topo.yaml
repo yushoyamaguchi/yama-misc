@@ -49,58 +49,59 @@ node_configs:
 
     - cmd: /usr/lib/frr/frrinit.sh start
 
-    - cmd: |
-        vtysh -c 'conf t' \
-          -c 'log file /tmp/frr.log' \
-          -c 'debug bgp neighbor-events' \
-          -c 'debug bgp zebra' \
-          -c 'debug bgp vnc verbose' \
-          -c 'debug bgp update-groups' \
-          -c 'debug bgp updates in' \
-          -c 'debug bgp updates out' \
-          -c 'debug bgp vpn label' \
-          -c 'debug bgp vpn leak-from-vrf' \
-          -c 'debug bgp vpn leak-to-vrf' \
-          -c 'debug bgp vpn rmap-event' \
-          -c 'segment-routing' \
-          -c ' srv6' \
-          -c '  locators' \
-          -c '   locator default' \
-          -c '    prefix 2001:1111::/64' \
-          -c '   exit' \
-          -c '  exit' \
-          -c ' exit' \
-          -c 'router bgp 1' \
-          -c ' bgp router-id 1.1.1.1' \
-          -c ' no bgp ebgp-requires-policy' \
-          -c ' no bgp default ipv4-unicast' \
-          -c ' neighbor 2001:ffff::2 remote-as 2' \
-          -c ' neighbor 2001:ffff::2 timers connect 1' \
-          -c ' address-family ipv6 vpn' \
-          -c '  neighbor 2001:ffff::2 activate' \
-          -c ' exit-address-family' \
-          -c ' segment-routing srv6' \
-          -c '  locator default' \
-          -c ' exit' \
-          -c 'exit' \
-          -c 'router bgp 1 vrf vrf100' \
-          -c ' bgp router-id 1.1.1.1' \
-          -c ' no bgp ebgp-requires-policy' \
-          -c ' no bgp default ipv4-unicast' \
-          -c ' neighbor 2001:bb11::2 remote-as 10' \
-          -c ' neighbor 2001:bb11::2 timers connect 1' \
-          -c ' address-family ipv6 unicast' \
-          -c '  sid vpn export auto' \
-          -c '  rd vpn export 1:100' \
-          -c '  rt vpn export 99:99' \
-          -c '  rt vpn import 99:99' \
-          -c '  import vpn' \
-          -c '  export vpn' \
-          -c '  redistribute connected' \
-          -c '  neighbor 2001:bb11::2 activate' \
-          -c ' exit-address-family' \
-          -c 'exit' \
-          -c 'ipv6 route 2001:2222::/64 2001:ffff::2'
+    - cmd: >-
+        vtysh -c 'conf t'
+        -c 'log file /tmp/frr.log'
+        -c 'debug bgp neighbor-events'
+        -c 'debug bgp zebra'
+        -c 'debug bgp vnc verbose'
+        -c 'debug bgp update-groups'
+        -c 'debug bgp updates in'
+        -c 'debug bgp updates out'
+        -c 'debug bgp vpn label'
+        -c 'debug bgp vpn leak-from-vrf'
+        -c 'debug bgp vpn leak-to-vrf'
+        -c 'debug bgp vpn rmap-event'
+        -c 'segment-routing'
+        -c ' srv6'
+        -c '  locators'
+        -c '   locator default'
+        -c '    prefix 2001:1111::/64'
+        -c '   exit'
+        -c '  exit'
+        -c ' exit'
+        -c 'router bgp 1'
+        -c ' bgp router-id 1.1.1.1'
+        -c ' no bgp ebgp-requires-policy'
+        -c ' no bgp default ipv4-unicast'
+        -c ' neighbor 2001:ffff::2 remote-as 2'
+        -c ' neighbor 2001:ffff::2 timers connect 1'
+        -c ' address-family ipv6 vpn'
+        -c '  neighbor 2001:ffff::2 activate'
+        -c ' exit-address-family'
+        -c ' segment-routing srv6'
+        -c '  locator default'
+        -c ' exit'
+        -c 'exit'
+        -c 'router bgp 1 vrf vrf100'
+        -c ' bgp router-id 1.1.1.1'
+        -c ' no bgp ebgp-requires-policy'
+        -c ' no bgp default ipv4-unicast'
+        -c ' neighbor 2001:bb11::2 remote-as 10'
+        -c ' neighbor 2001:bb11::2 timers connect 1'
+        -c ' address-family ipv6 unicast'
+        -c '  sid vpn export auto'
+        -c '  rd vpn export 1:100'
+        -c '  rt vpn export 99:99'
+        -c '  rt vpn import 99:99'
+        -c '  import vpn'
+        -c '  export vpn'
+        -c '  redistribute connected'
+        -c '  neighbor 2001:bb11::2 activate'
+        -c ' exit-address-family'
+        -c 'exit'
+        -c 'ipv6 route 2001:2222::/64 2001:ffff::2'
+    - cmd: vtysh -c "do write mem"
 
 - name: R2
   cmds:
@@ -128,47 +129,48 @@ node_configs:
 
     - cmd: /usr/lib/frr/frrinit.sh start
 
-    - cmd: |
-        vtysh -c 'conf t' \
-          -c 'segment-routing' \
-          -c ' srv6' \
-          -c '  locators' \
-          -c '   locator default' \
-          -c '    prefix 2001:2222::/64' \
-          -c '   exit' \
-          -c '  exit' \
-          -c ' exit' \
-          -c 'router bgp 2' \
-          -c ' bgp router-id 2.2.2.2' \
-          -c ' no bgp ebgp-requires-policy' \
-          -c ' no bgp default ipv4-unicast' \
-          -c ' neighbor 2001:ffff::1 remote-as 1' \
-          -c ' neighbor 2001:ffff::1 timers connect 1' \
-          -c ' address-family ipv6 vpn' \
-          -c '  neighbor 2001:ffff::1 activate' \
-          -c ' exit-address-family' \
-          -c ' segment-routing srv6' \
-          -c '  locator default' \
-          -c ' exit' \
-          -c 'exit' \
-          -c 'router bgp 2 vrf vrf100' \
-          -c ' bgp router-id 2.2.2.2' \
-          -c ' no bgp ebgp-requires-policy' \
-          -c ' no bgp default ipv4-unicast' \
-          -c ' neighbor 2001:bb22::2 remote-as 20' \
-          -c ' neighbor 2001:bb22::2 timers connect 1' \
-          -c ' address-family ipv6 unicast' \
-          -c '  sid vpn export auto' \
-          -c '  rd vpn export 2:100' \
-          -c '  rt vpn export 99:99' \
-          -c '  rt vpn import 99:99' \
-          -c '  import vpn' \
-          -c '  export vpn' \
-          -c '  redistribute connected' \
-          -c '  neighbor 2001:bb22::2 activate' \
-          -c ' exit-address-family' \
-          -c 'exit' \
-          -c 'ipv6 route 2001:1111::/64 2001:ffff::1'
+    - cmd: >-
+        vtysh -c 'conf t'
+        -c 'segment-routing'
+        -c ' srv6'
+        -c '  locators'
+        -c '   locator default'
+        -c '    prefix 2001:2222::/64'
+        -c '   exit'
+        -c '  exit'
+        -c ' exit'
+        -c 'router bgp 2'
+        -c ' bgp router-id 2.2.2.2'
+        -c ' no bgp ebgp-requires-policy'
+        -c ' no bgp default ipv4-unicast'
+        -c ' neighbor 2001:ffff::1 remote-as 1'
+        -c ' neighbor 2001:ffff::1 timers connect 1'
+        -c ' address-family ipv6 vpn'
+        -c '  neighbor 2001:ffff::1 activate'
+        -c ' exit-address-family'
+        -c ' segment-routing srv6'
+        -c '  locator default'
+        -c ' exit'
+        -c 'exit'
+        -c 'router bgp 2 vrf vrf100'
+        -c ' bgp router-id 2.2.2.2'
+        -c ' no bgp ebgp-requires-policy'
+        -c ' no bgp default ipv4-unicast'
+        -c ' neighbor 2001:bb22::2 remote-as 20'
+        -c ' neighbor 2001:bb22::2 timers connect 1'
+        -c ' address-family ipv6 unicast'
+        -c '  sid vpn export auto'
+        -c '  rd vpn export 2:100'
+        -c '  rt vpn export 99:99'
+        -c '  rt vpn import 99:99'
+        -c '  import vpn'
+        -c '  export vpn'
+        -c '  redistribute connected'
+        -c '  neighbor 2001:bb22::2 activate'
+        -c ' exit-address-family'
+        -c 'exit'
+        -c 'ipv6 route 2001:1111::/64 2001:ffff::1'
+    - cmd: vtysh -c "do write mem"
 
 - name: C1
   cmds:
