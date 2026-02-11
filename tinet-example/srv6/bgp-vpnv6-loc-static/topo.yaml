@@ -47,10 +47,9 @@ node_configs:
     - cmd: ip addr add 2001:ffff::1/64 dev net0
     - cmd: ip link add vrf100 type vrf table 100
     - cmd: ip link set vrf100 up
-    - cmd: ip link set dev net1 vrf vrf100
+    - cmd: ip link set dev net1 master vrf100
     - cmd: ip addr add 2001:bb11::1/64 dev net1
-    - cmd: ip -6 addr add 2001:1111::1/128 dev lo
-    - cmd: ip -6 route replace blackhole 2001:1111::/64
+    - cmd: ip sr tunsrc set 2001:1111::1
 
     - cmd: /usr/lib/frr/frrinit.sh start
 
@@ -108,6 +107,7 @@ node_configs:
         -c '  neighbor 2001:bb11::2 activate'
         -c ' exit-address-family'
         -c 'exit'
+        -c 'ipv6 route 2001:1111::/64 Null0'
     - cmd: vtysh -c "do write mem"
 
 - name: R2
@@ -131,10 +131,9 @@ node_configs:
     - cmd: ip addr add 2001:ffff::2/64 dev net0
     - cmd: ip link add vrf100 type vrf table 100
     - cmd: ip link set vrf100 up
-    - cmd: ip link set dev net1 vrf vrf100
+    - cmd: ip link set dev net1 master vrf100
     - cmd: ip addr add 2001:bb22::1/64 dev net1
-    - cmd: ip -6 addr add 2001:2222::1/128 dev lo
-    - cmd: ip -6 route replace blackhole 2001:2222::/64
+    - cmd: ip sr tunsrc set 2001:2222::1
 
     - cmd: /usr/lib/frr/frrinit.sh start
 
@@ -182,6 +181,7 @@ node_configs:
         -c '  neighbor 2001:bb22::2 activate'
         -c ' exit-address-family'
         -c 'exit'
+        -c 'ipv6 route 2001:2222::/64 Null0'
     - cmd: vtysh -c "do write mem"
 
 - name: C1
