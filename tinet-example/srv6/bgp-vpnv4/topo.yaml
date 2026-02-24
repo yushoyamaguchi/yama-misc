@@ -104,7 +104,7 @@ node_configs:
       -c "  redistribute connected"
       -c " exit-address-family"
       -c " !"
-      -c " address-family ipv6 vpn"
+      -c " address-family ipv4 vpn"
       -c "  neighbor PE activate"
       -c " exit-address-family"
       -c "!"
@@ -154,10 +154,14 @@ node_configs:
 
   - cmd: ip addr add 10.255.0.11/32 dev lo
   - cmd: ip addr add 2001:db8:e:11::0/128 dev lo
+
   - cmd: ip link add vrf1 type vrf table 1001
   - cmd: ip link set vrf1 up
   - cmd: ip link set net1 master vrf1
-  - cmd: ip -6 addr add 2001:11::1/64 dev net1
+
+  # CE-PE link is now IPv4
+  - cmd: ip addr add 10.11.0.1/24 dev net1
+
   - cmd: ip sr tunsrc set 2001:db8:f:1::0
   - cmd: ip -6 rule add to 2001:db8::/32 pref 10 table main
   - cmd: /usr/lib/frr/frrinit.sh start
@@ -201,17 +205,17 @@ node_configs:
       -c "  neighbor PEER activate"
       -c " exit-address-family"
       -c " !"
-      -c " address-family ipv6 vpn"
+      -c " address-family ipv4 vpn"
       -c "  neighbor PE activate"
       -c " exit-address-family"
       -c "!"
       -c "router bgp 11 vrf vrf1"
       -c " bgp router-id 11.11.11.11"
       -c " no bgp ebgp-requires-policy"
-      -c " neighbor 2001:11::2 remote-as external"
+      -c " neighbor 10.11.0.2 remote-as external"
       -c " !"
-      -c " address-family ipv6 unicast"
-      -c "  neighbor 2001:11::2 activate"
+      -c " address-family ipv4 unicast"
+      -c "  neighbor 10.11.0.2 activate"
       -c "  sid vpn export auto"
       -c "  rd vpn export 11:1001"
       -c "  rt vpn export 1:1001"
@@ -240,10 +244,14 @@ node_configs:
 
   - cmd: ip addr add 10.255.0.12/32 dev lo
   - cmd: ip addr add 2001:db8:e:12::0/128 dev lo
+
   - cmd: ip link add vrf1 type vrf table 1001
   - cmd: ip link set vrf1 up
   - cmd: ip link set net1 master vrf1
-  - cmd: ip -6 addr add 2001:12::1/64 dev net1
+
+  # CE-PE link is now IPv4
+  - cmd: ip addr add 10.12.0.1/24 dev net1
+
   - cmd: ip sr tunsrc set 2001:db8:f:2::0
   - cmd: ip -6 rule add to 2001:db8::/32 pref 10 table main
   - cmd: /usr/lib/frr/frrinit.sh start
@@ -287,17 +295,17 @@ node_configs:
       -c "  neighbor PEER activate"
       -c " exit-address-family"
       -c " !"
-      -c " address-family ipv6 vpn"
+      -c " address-family ipv4 vpn"
       -c "  neighbor PE activate"
       -c " exit-address-family"
       -c "!"
       -c "router bgp 12 vrf vrf1"
       -c " bgp router-id 12.12.12.12"
       -c " no bgp ebgp-requires-policy"
-      -c " neighbor 2001:12::2 remote-as external"
+      -c " neighbor 10.12.0.2 remote-as external"
       -c " !"
-      -c " address-family ipv6 unicast"
-      -c "  neighbor 2001:12::2 activate"
+      -c " address-family ipv4 unicast"
+      -c "  neighbor 10.12.0.2 activate"
       -c "  sid vpn export auto"
       -c "  rd vpn export 12:1001"
       -c "  rt vpn export 1:1001"
@@ -323,13 +331,17 @@ node_configs:
   - cmd: sysctl -w 'net.ipv4.conf.lo.rp_filter=0'
   - cmd: sysctl -w 'net.ipv4.conf.net0.rp_filter=0'
   - cmd: sysctl -w 'net.ipv4.conf.net1.rp_filter=0'
-    
+
   - cmd: ip addr add 10.255.0.13/32 dev lo
   - cmd: ip addr add 2001:db8:e:13::0/128 dev lo
+
   - cmd: ip link add vrf1 type vrf table 1001
   - cmd: ip link set vrf1 up
   - cmd: ip link set net1 master vrf1
-  - cmd: ip -6 addr add 2001:13::1/64 dev net1
+
+  # CE-PE link is now IPv4
+  - cmd: ip addr add 10.13.0.1/24 dev net1
+
   - cmd: ip sr tunsrc set 2001:db8:f:3::0
   - cmd: ip -6 rule add to 2001:db8::/32 pref 10 table main
   - cmd: /usr/lib/frr/frrinit.sh start
@@ -373,7 +385,7 @@ node_configs:
       -c "  neighbor PEER activate"
       -c " exit-address-family"
       -c " !"
-      -c " address-family ipv6 vpn"
+      -c " address-family ipv4 vpn"
       -c "  neighbor PE activate"
       -c " exit-address-family"
       -c "!"
@@ -381,7 +393,7 @@ node_configs:
       -c " bgp router-id 13.13.13.13"
       -c " no bgp ebgp-requires-policy"
       -c " !"
-      -c " address-family ipv6 unicast"
+      -c " address-family ipv4 unicast"
       -c "  sid vpn export auto"
       -c "  rd vpn export 13:1001"
       -c "  rt vpn export 1:1001"
@@ -394,42 +406,57 @@ node_configs:
 
 - name: C1
   cmds:
-  - cmd: ip -6 addr add 2001:11::2/64 dev net0
-  - cmd: ip -6 route replace default via 2001:11::1
+  - cmd: ip addr add 10.11.0.2/24 dev net0
+  - cmd: ip route replace default via 10.11.0.1
   - cmd: /usr/lib/frr/frrinit.sh start
   - cmd: >-
       vtysh -c "conf t"
-      -c "ipv6 route 0::/0 Null0"
+      -c "ip route 0.0.0.0/0 Null0"
       -c "!"
       -c "router bgp 101"
       -c " bgp router-id 101.101.101.101"
       -c " no bgp ebgp-requires-policy"
-      -c " neighbor 2001:11::1 remote-as external"
+      -c " neighbor 10.11.0.1 remote-as external"
       -c " !"
-      -c " address-family ipv6 unicast"
-      -c "  neighbor 2001:11::1 activate"
-      -c "  network 0::/0"
+      -c " address-family ipv4 unicast"
+      -c "  neighbor 10.11.0.1 activate"
+      -c "  network 0.0.0.0/0"
       -c " exit-address-family"
+
 - name: C2
   cmds:
-  - cmd: ip -6 addr add 2001:12::2/64 dev net0
-  - cmd: ip -6 route replace default via 2001:12::1
+  - cmd: ip addr add 10.12.0.2/24 dev net0
+  - cmd: ip route replace default via 10.12.0.1
   - cmd: /usr/lib/frr/frrinit.sh start
   - cmd: >-
       vtysh -c "conf t"
-      -c "ipv6 route 0::/0 Null0"
+      -c "ip route 0.0.0.0/0 Null0"
       -c "!"
       -c "router bgp 102"
       -c " bgp router-id 102.102.102.102"
       -c " no bgp ebgp-requires-policy"
-      -c " neighbor 2001:12::1 remote-as external"
+      -c " neighbor 10.12.0.1 remote-as external"
       -c " !"
-      -c " address-family ipv6 unicast"
-      -c "  neighbor 2001:12::1 activate"
-      -c "  network 0::/0"
+      -c " address-family ipv4 unicast"
+      -c "  neighbor 10.12.0.1 activate"
+      -c "  network 0.0.0.0/0"
       -c " exit-address-family"
+
 - name: C3
   cmds:
-  - cmd: ip -6 addr add 2001:13::2/64 dev net0
-  - cmd: ip -6 route replace default via 2001:13::1
+  - cmd: ip addr add 10.13.0.2/24 dev net0
+  - cmd: ip route replace default via 10.13.0.1
   - cmd: /usr/lib/frr/frrinit.sh start
+  - cmd: >-
+      vtysh -c "conf t"
+      -c "ip route 0.0.0.0/0 Null0"
+      -c "!"
+      -c "router bgp 103"
+      -c " bgp router-id 103.103.103.103"
+      -c " no bgp ebgp-requires-policy"
+      -c " neighbor 10.13.0.1 remote-as external"
+      -c " !"
+      -c " address-family ipv4 unicast"
+      -c "  neighbor 10.13.0.1 activate"
+      -c "  network 0.0.0.0/0"
+      -c " exit-address-family"
