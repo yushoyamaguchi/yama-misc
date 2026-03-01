@@ -1,7 +1,6 @@
 nodes:
 - name: RS1
-  image: frr:centos-8-nettool
-  docker_run_extra_args: --entrypoint bash
+  image: tinynetwork/frr:develop
   interfaces:
   - { name: net0, type: direct, args: S1#net0 }
   sysctls:
@@ -10,8 +9,7 @@ nodes:
   - sysctl: net.ipv6.conf.all.forwarding=1
 
 - name: S1
-  image: frr:centos-8-nettool
-  docker_run_extra_args: --entrypoint bash
+  image: slankdev/frr
   interfaces:
   - { name: net0, type: direct, args: RS1#net0 }
   - { name: net1, type: direct, args: R1#net0 }
@@ -23,8 +21,7 @@ nodes:
   - sysctl: net.ipv6.conf.all.forwarding=1
 
 - name: R1
-  image: frr:centos-8-nettool
-  docker_run_extra_args: --entrypoint bash
+  image: tinynetwork/frr:develop
   interfaces:
   - { name: net0, type: direct, args: S1#net1 }
   - { name: net1, type: direct, args: C1#net0 }
@@ -33,8 +30,7 @@ nodes:
   - sysctl: net.ipv6.conf.default.disable_ipv6=0
   - sysctl: net.ipv6.conf.all.forwarding=1
 - name: R2
-  image: frr:centos-8-nettool
-  docker_run_extra_args: --entrypoint bash
+  image: tinynetwork/frr:develop
   interfaces:
   - { name: net0, type: direct, args: S1#net2 }
   - { name: net1, type: direct, args: C2#net0 }
@@ -43,8 +39,7 @@ nodes:
   - sysctl: net.ipv6.conf.default.disable_ipv6=0
   - sysctl: net.ipv6.conf.all.forwarding=1
 - name: R3
-  image: frr:centos-8-nettool
-  docker_run_extra_args: --entrypoint bash
+  image: tinynetwork/frr:develop
   interfaces:
   - { name: net0, type: direct, args: S1#net3 }
   - { name: net1, type: direct, args: C3#net0 }
@@ -54,8 +49,7 @@ nodes:
   - sysctl: net.ipv6.conf.all.forwarding=1
 
 - name: C1
-  image: frr:centos-8-nettool
-  docker_run_extra_args: --entrypoint bash
+  image: tinynetwork/frr:develop
   interfaces:
   - { name: net0, type: direct, args: R1#net1 }
   sysctls:
@@ -63,8 +57,7 @@ nodes:
   - sysctl: net.ipv6.conf.default.disable_ipv6=0
   - sysctl: net.ipv6.conf.all.forwarding=1
 - name: C2
-  image: frr:centos-8-nettool
-  docker_run_extra_args: --entrypoint bash
+  image: tinynetwork/frr:develop
   interfaces:
   - { name: net0, type: direct, args: R2#net1 }
   sysctls:
@@ -72,8 +65,7 @@ nodes:
   - sysctl: net.ipv6.conf.default.disable_ipv6=0
   - sysctl: net.ipv6.conf.all.forwarding=1
 - name: C3
-  image: frr:centos-8-nettool
-  docker_run_extra_args: --entrypoint bash
+  image: tinynetwork/frr:develop
   interfaces:
   - { name: net0, type: direct, args: R3#net1 }
   sysctls:
@@ -84,7 +76,6 @@ nodes:
 node_configs:
 - name: RS1
   cmds:
-  - cmd: sed -i 's/bgpd=no/bgpd=yes/' /etc/frr/daemons
   - cmd: ip addr add 10.255.0.1/32 dev lo
   - cmd: ip addr add 2001:db8:e:1::0/128 dev lo
   - cmd: /usr/lib/frr/frrinit.sh start
@@ -120,14 +111,12 @@ node_configs:
 
 - name: S1
   cmds:
-  - cmd: sed -i 's/bgpd=no/bgpd=yes/' /etc/frr/daemons
   - cmd: ip addr add 10.255.0.100/32 dev lo
-  - cmd: /usr/lib/frr/frrinit.sh start
+  - cmd: /usr/lib/frr/frr start
   - cmd: >-
       vtysh -c "conf t"
       -c "router bgp 100"
       -c " bgp router-id 100.100.100.100"
-      -c " no bgp ebgp-requires-policy"
       -c " !"
       -c " neighbor PEER peer-group"
       -c " neighbor PEER remote-as external"
@@ -149,7 +138,6 @@ node_configs:
 
 - name: R1
   cmds:
-  - cmd: sed -i 's/bgpd=no/bgpd=yes/' /etc/frr/daemons
   - cmd: sysctl -w 'net.ipv6.conf.all.forwarding=1'
   - cmd: sysctl -w 'net.ipv6.conf.all.disable_ipv6=0'
   - cmd: sysctl -w 'net.ipv6.conf.all.seg6_enabled=1'
@@ -251,7 +239,6 @@ node_configs:
 
 - name: R2
   cmds:
-  - cmd: sed -i 's/bgpd=no/bgpd=yes/' /etc/frr/daemons
   - cmd: sysctl -w 'net.ipv6.conf.all.forwarding=1'
   - cmd: sysctl -w 'net.ipv6.conf.all.disable_ipv6=0'
   - cmd: sysctl -w 'net.ipv6.conf.all.seg6_enabled=1'
@@ -353,7 +340,6 @@ node_configs:
 
 - name: R3
   cmds:
-  - cmd: sed -i 's/bgpd=no/bgpd=yes/' /etc/frr/daemons
   - cmd: sysctl -w 'net.ipv6.conf.all.forwarding=1'
   - cmd: sysctl -w 'net.ipv6.conf.all.disable_ipv6=0'
   - cmd: sysctl -w 'net.ipv6.conf.all.seg6_enabled=1'
@@ -443,7 +429,6 @@ node_configs:
 
 - name: C1
   cmds:
-  - cmd: sed -i 's/bgpd=no/bgpd=yes/' /etc/frr/daemons
   - cmd: ip addr add 10.11.0.2/24 dev net0
   - cmd: ip route replace default via 10.11.0.1
   - cmd: /usr/lib/frr/frrinit.sh start
@@ -463,7 +448,6 @@ node_configs:
 
 - name: C2
   cmds:
-  - cmd: sed -i 's/bgpd=no/bgpd=yes/' /etc/frr/daemons
   - cmd: ip addr add 10.12.0.2/24 dev net0
   - cmd: ip route replace default via 10.12.0.1
   - cmd: /usr/lib/frr/frrinit.sh start
@@ -483,7 +467,6 @@ node_configs:
 
 - name: C3
   cmds:
-  - cmd: sed -i 's/bgpd=no/bgpd=yes/' /etc/frr/daemons
   - cmd: ip addr add 10.13.0.2/24 dev net0
   - cmd: ip route replace default via 10.13.0.1
   - cmd: /usr/lib/frr/frrinit.sh start
