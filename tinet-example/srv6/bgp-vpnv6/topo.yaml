@@ -151,6 +151,7 @@ node_configs:
   - cmd: sysctl -w 'net.ipv4.conf.lo.rp_filter=0'
   - cmd: sysctl -w 'net.ipv4.conf.net0.rp_filter=0'
   - cmd: sysctl -w 'net.ipv4.conf.net1.rp_filter=0'
+  - cmd: sysctl -w 'net.vrf.strict_mode=1'
 
   - cmd: ip addr add 10.255.0.11/32 dev lo
   - cmd: ip addr add 2001:db8:e:11::0/128 dev lo
@@ -163,6 +164,16 @@ node_configs:
   - cmd: /usr/lib/frr/frrinit.sh start
   - cmd: >-
       vtysh -c "conf t"
+      -c 'log file /tmp/frr.log'
+      -c 'debug bgp neighbor-events'
+      -c 'debug bgp zebra'
+      -c 'debug bgp update-groups'
+      -c 'debug bgp updates in'
+      -c 'debug bgp updates out'
+      -c 'debug bgp vpn label'
+      -c 'debug bgp vpn leak-from-vrf'
+      -c 'debug bgp vpn leak-to-vrf'
+      -c 'debug bgp vpn rmap-event'
       -c "segment-routing"
       -c " srv6"
       -c "  locators"
@@ -237,6 +248,7 @@ node_configs:
   - cmd: sysctl -w 'net.ipv4.conf.lo.rp_filter=0'
   - cmd: sysctl -w 'net.ipv4.conf.net0.rp_filter=0'
   - cmd: sysctl -w 'net.ipv4.conf.net1.rp_filter=0'
+  - cmd: sysctl -w 'net.vrf.strict_mode=1'
 
   - cmd: ip addr add 10.255.0.12/32 dev lo
   - cmd: ip addr add 2001:db8:e:12::0/128 dev lo
@@ -323,6 +335,7 @@ node_configs:
   - cmd: sysctl -w 'net.ipv4.conf.lo.rp_filter=0'
   - cmd: sysctl -w 'net.ipv4.conf.net0.rp_filter=0'
   - cmd: sysctl -w 'net.ipv4.conf.net1.rp_filter=0'
+  - cmd: sysctl -w 'net.vrf.strict_mode=1'
     
   - cmd: ip addr add 10.255.0.13/32 dev lo
   - cmd: ip addr add 2001:db8:e:13::0/128 dev lo

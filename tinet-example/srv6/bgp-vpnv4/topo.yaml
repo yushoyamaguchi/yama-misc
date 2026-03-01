@@ -167,6 +167,16 @@ node_configs:
   - cmd: /usr/lib/frr/frrinit.sh start
   - cmd: >-
       vtysh -c "conf t"
+      -c 'log file /tmp/frr.log'
+      -c 'debug bgp neighbor-events'
+      -c 'debug bgp zebra'
+      -c 'debug bgp update-groups'
+      -c 'debug bgp updates in'
+      -c 'debug bgp updates out'
+      -c 'debug bgp vpn label'
+      -c 'debug bgp vpn leak-from-vrf'
+      -c 'debug bgp vpn leak-to-vrf'
+      -c 'debug bgp vpn rmap-event'
       -c "segment-routing"
       -c " srv6"
       -c "  locators"
@@ -257,6 +267,16 @@ node_configs:
   - cmd: /usr/lib/frr/frrinit.sh start
   - cmd: >-
       vtysh -c "conf t"
+      -c 'log file /tmp/frr.log'
+      -c 'debug bgp neighbor-events'
+      -c 'debug bgp zebra'
+      -c 'debug bgp update-groups'
+      -c 'debug bgp updates in'
+      -c 'debug bgp updates out'
+      -c 'debug bgp vpn label'
+      -c 'debug bgp vpn leak-from-vrf'
+      -c 'debug bgp vpn leak-to-vrf'
+      -c 'debug bgp vpn rmap-event'
       -c "segment-routing"
       -c " srv6"
       -c "  locators"
