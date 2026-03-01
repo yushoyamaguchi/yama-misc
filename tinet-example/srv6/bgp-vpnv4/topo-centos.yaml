@@ -163,6 +163,7 @@ node_configs:
   - cmd: sysctl -w 'net.ipv4.conf.lo.rp_filter=0'
   - cmd: sysctl -w 'net.ipv4.conf.net0.rp_filter=0'
   - cmd: sysctl -w 'net.ipv4.conf.net1.rp_filter=0'
+  - cmd: sysctl -w 'net.vrf.strict_mode=1'
 
   - cmd: ip addr add 10.255.0.11/32 dev lo
   - cmd: ip addr add 2001:db8:e:11::0/128 dev lo
@@ -264,6 +265,7 @@ node_configs:
   - cmd: sysctl -w 'net.ipv4.conf.lo.rp_filter=0'
   - cmd: sysctl -w 'net.ipv4.conf.net0.rp_filter=0'
   - cmd: sysctl -w 'net.ipv4.conf.net1.rp_filter=0'
+  - cmd: sysctl -w 'net.vrf.strict_mode=1'
 
   - cmd: ip addr add 10.255.0.12/32 dev lo
   - cmd: ip addr add 2001:db8:e:12::0/128 dev lo
@@ -365,6 +367,7 @@ node_configs:
   - cmd: sysctl -w 'net.ipv4.conf.lo.rp_filter=0'
   - cmd: sysctl -w 'net.ipv4.conf.net0.rp_filter=0'
   - cmd: sysctl -w 'net.ipv4.conf.net1.rp_filter=0'
+  - cmd: sysctl -w 'net.vrf.strict_mode=1'
 
   - cmd: ip addr add 10.255.0.13/32 dev lo
   - cmd: ip addr add 2001:db8:e:13::0/128 dev lo
