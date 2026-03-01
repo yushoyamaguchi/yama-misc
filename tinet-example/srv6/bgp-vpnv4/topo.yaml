@@ -248,6 +248,7 @@ node_configs:
       -c "  redistribute connected"
       -c " exit-address-family"
       -c "!"
+  - cmd: sysctl -w 'net.ipv4.conf.vrf1.rp_filter=0'
 
 - name: R2
   cmds:
@@ -350,6 +351,7 @@ node_configs:
       -c "  redistribute connected"
       -c " exit-address-family"
       -c "!"
+  - cmd: sysctl -w 'net.ipv4.conf.vrf1.rp_filter=0'
 
 - name: R3
   cmds:
@@ -440,6 +442,7 @@ node_configs:
       -c "  redistribute connected"
       -c " exit-address-family"
       -c "!"
+  - cmd: sysctl -w 'net.ipv4.conf.vrf1.rp_filter=0'
 
 - name: C1
   cmds:
