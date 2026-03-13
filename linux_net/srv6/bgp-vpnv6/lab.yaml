@@ -1,0 +1,354 @@
+name: bgp-vpnv6
+topology:
+  nodes:
+
+    RS1:
+      kind: linux
+      image: quay.io/frrouting/frr:master
+      sysctls:
+        net.ipv6.conf.all.disable_ipv6: '0'
+        net.ipv6.conf.default.disable_ipv6: '0'
+        net.ipv6.conf.all.forwarding: '1'
+      exec:
+      - ip addr add 10.255.0.1/32 dev lo
+      - ip addr add 2001:db8:e:1::0/128 dev lo
+      - touch /etc/frr/vtysh.conf
+      - chown frr:frr /etc/frr/vtysh.conf
+      - touch /etc/frr/bgpd.conf
+      - chown frr:frr /etc/frr/bgpd.conf
+      - chmod 640 /etc/frr/bgpd.conf
+      - sed -i 's/^bgpd=.*/bgpd=yes/' /etc/frr/daemons
+      - /usr/lib/frr/bgpd -d -F traditional -A 127.0.0.1
+      - vtysh -c "conf t" -c "router bgp 1" -c "bgp router-id 1.1.1.1"
+      - vtysh -c "conf t" -c "router bgp 1" -c "no bgp ebgp-requires-policy"
+      - vtysh -c "conf t" -c "router bgp 1" -c "neighbor PEER peer-group"
+      - vtysh -c "conf t" -c "router bgp 1" -c "neighbor PEER remote-as external"
+      - vtysh -c "conf t" -c "router bgp 1" -c "neighbor net0 interface peer-group PEER"
+      - vtysh -c "conf t" -c "router bgp 1" -c "neighbor PE peer-group"
+      - vtysh -c "conf t" -c "router bgp 1" -c "neighbor PE remote-as external"
+      - vtysh -c "conf t" -c "router bgp 1" -c "neighbor PE ebgp-multihop 255"
+      - vtysh -c "conf t" -c "router bgp 1" -c "bgp listen range 2001:db8:e::/48 peer-group PE"
+      - vtysh -c "conf t" -c "router bgp 1" -c "address-family ipv4 unicast" -c "redistribute connected"
+      - vtysh -c "conf t" -c "router bgp 1" -c "address-family ipv4 unicast" -c "neighbor PEER activate"
+      - vtysh -c "conf t" -c "router bgp 1" -c "address-family ipv6 unicast" -c "neighbor PEER activate"
+      - vtysh -c "conf t" -c "router bgp 1" -c "address-family ipv6 unicast" -c "redistribute connected"
+      - vtysh -c "conf t" -c "router bgp 1" -c "address-family ipv6 vpn" -c "neighbor PE activate"
+
+    S1:
+      kind: linux
+      image: quay.io/frrouting/frr:master
+      sysctls:
+        net.ipv6.conf.all.disable_ipv6: '0'
+        net.ipv6.conf.default.disable_ipv6: '0'
+        net.ipv6.conf.all.forwarding: '1'
+      exec:
+      - ip addr add 10.255.0.100/32 dev lo
+      - touch /etc/frr/vtysh.conf
+      - chown frr:frr /etc/frr/vtysh.conf
+      - touch /etc/frr/bgpd.conf
+      - chown frr:frr /etc/frr/bgpd.conf
+      - chmod 640 /etc/frr/bgpd.conf
+      - sed -i 's/^bgpd=.*/bgpd=yes/' /etc/frr/daemons
+      - /usr/lib/frr/bgpd -d -F traditional -A 127.0.0.1
+      - vtysh -c "conf t" -c "router bgp 100" -c "bgp router-id 100.100.100.100"
+      - vtysh -c "conf t" -c "router bgp 100" -c "no bgp ebgp-requires-policy"
+      - vtysh -c "conf t" -c "router bgp 100" -c "neighbor PEER peer-group"
+      - vtysh -c "conf t" -c "router bgp 100" -c "neighbor PEER remote-as external"
+      - vtysh -c "conf t" -c "router bgp 100" -c "neighbor net0 interface peer-group PEER"
+      - vtysh -c "conf t" -c "router bgp 100" -c "neighbor net1 interface peer-group PEER"
+      - vtysh -c "conf t" -c "router bgp 100" -c "neighbor net2 interface peer-group PEER"
+      - vtysh -c "conf t" -c "router bgp 100" -c "neighbor net3 interface peer-group PEER"
+      - vtysh -c "conf t" -c "router bgp 100" -c "address-family ipv4 unicast" -c "redistribute connected"
+      - vtysh -c "conf t" -c "router bgp 100" -c "address-family ipv4 unicast" -c "neighbor PEER activate"
+      - vtysh -c "conf t" -c "router bgp 100" -c "address-family ipv6 unicast" -c "neighbor PEER activate"
+      - vtysh -c "conf t" -c "router bgp 100" -c "address-family ipv6 unicast" -c "network 0::/0"
+
+    R1:
+      kind: linux
+      image: quay.io/frrouting/frr:master
+      sysctls:
+        net.ipv6.conf.all.disable_ipv6: '0'
+        net.ipv6.conf.default.disable_ipv6: '0'
+        net.ipv6.conf.all.forwarding: '1'
+      exec:
+      - sysctl -w net.ipv6.conf.all.forwarding=1
+      - sysctl -w net.ipv6.conf.all.disable_ipv6=0
+      - sysctl -w net.ipv6.conf.all.seg6_enabled=1
+      - sysctl -w net.ipv6.conf.default.forwarding=1
+      - sysctl -w net.ipv6.conf.default.disable_ipv6=0
+      - sysctl -w net.ipv6.conf.default.seg6_enabled=1
+      - sysctl -w net.ipv6.conf.lo.seg6_enabled=1
+      - sysctl -w net.ipv6.conf.net0.seg6_enabled=1
+      - sysctl -w net.ipv6.conf.net1.seg6_enabled=1
+      - sysctl -w net.ipv4.conf.all.rp_filter=0
+      - sysctl -w net.ipv4.conf.lo.rp_filter=0
+      - sysctl -w net.ipv4.conf.net0.rp_filter=0
+      - sysctl -w net.ipv4.conf.net1.rp_filter=0
+      - sysctl -w net.vrf.strict_mode=1
+      - ip addr add 10.255.0.11/32 dev lo
+      - ip addr add 2001:db8:e:11::0/128 dev lo
+      - ip link add vrf1 type vrf table 1001
+      - ip link set vrf1 up
+      - ip link set net1 master vrf1
+      - ip -6 addr add 2001:11::1/64 dev net1
+      - ip sr tunsrc set 2001:db8:f:1::0
+      - ip -6 rule add to 2001:db8::/32 pref 10 table main
+      - touch /etc/frr/vtysh.conf
+      - chown frr:frr /etc/frr/vtysh.conf
+      - touch /etc/frr/bgpd.conf
+      - chown frr:frr /etc/frr/bgpd.conf
+      - chmod 640 /etc/frr/bgpd.conf
+      - sed -i 's/^bgpd=.*/bgpd=yes/' /etc/frr/daemons
+      - /usr/lib/frr/bgpd -d -F traditional -A 127.0.0.1
+      - vtysh -c "conf t" -c "log file /tmp/frr.log"
+      - vtysh -c "conf t" -c "debug bgp neighbor-events"
+      - vtysh -c "conf t" -c "debug bgp zebra"
+      - vtysh -c "conf t" -c "debug bgp update-groups"
+      - vtysh -c "conf t" -c "debug bgp updates in"
+      - vtysh -c "conf t" -c "debug bgp updates out"
+      - vtysh -c "conf t" -c "debug bgp vpn label"
+      - vtysh -c "conf t" -c "debug bgp vpn leak-from-vrf"
+      - vtysh -c "conf t" -c "debug bgp vpn leak-to-vrf"
+      - vtysh -c "conf t" -c "debug bgp vpn rmap-event"
+      - vtysh -c "conf t" -c "segment-routing" -c "srv6" -c "locators" -c "locator default" -c "prefix 2001:db8:f:1::/64"
+      - vtysh -c "conf t" -c "ipv6 route 2001:db8:f:1::/64 Null0"
+      - vtysh -c "conf t" -c "router bgp 11" -c "bgp router-id 11.11.11.11"
+      - vtysh -c "conf t" -c "router bgp 11" -c "no bgp ebgp-requires-policy"
+      - vtysh -c "conf t" -c "router bgp 11" -c "neighbor PEER peer-group"
+      - vtysh -c "conf t" -c "router bgp 11" -c "neighbor PEER remote-as external"
+      - vtysh -c "conf t" -c "router bgp 11" -c "neighbor net0 interface peer-group PEER"
+      - vtysh -c "conf t" -c "router bgp 11" -c "neighbor PE peer-group"
+      - vtysh -c "conf t" -c "router bgp 11" -c "neighbor PE remote-as external"
+      - vtysh -c "conf t" -c "router bgp 11" -c "neighbor PE ebgp-multihop 255"
+      - 'vtysh -c "conf t" -c "router bgp 11" -c "neighbor 2001:db8:e:1:: peer-group PE"'
+      - vtysh -c "conf t" -c "router bgp 11" -c "segment-routing srv6" -c "locator default"
+      - vtysh -c "conf t" -c "router bgp 11" -c "address-family ipv4 unicast" -c "redistribute connected"
+      - vtysh -c "conf t" -c "router bgp 11" -c "address-family ipv4 unicast" -c "neighbor PEER activate"
+      - vtysh -c "conf t" -c "router bgp 11" -c "address-family ipv6 unicast" -c "redistribute connected"
+      - vtysh -c "conf t" -c "router bgp 11" -c "address-family ipv6 unicast" -c "network 2001:db8:f:1::/64"
+      - vtysh -c "conf t" -c "router bgp 11" -c "address-family ipv6 unicast" -c "neighbor PEER activate"
+      - vtysh -c "conf t" -c "router bgp 11" -c "address-family ipv6 vpn" -c "neighbor PE activate"
+      - vtysh -c "conf t" -c "router bgp 11 vrf vrf1" -c "bgp router-id 11.11.11.11"
+      - vtysh -c "conf t" -c "router bgp 11 vrf vrf1" -c "no bgp ebgp-requires-policy"
+      - vtysh -c "conf t" -c "router bgp 11 vrf vrf1" -c "neighbor 2001:11::2 remote-as external"
+      - vtysh -c "conf t" -c "router bgp 11 vrf vrf1" -c "address-family ipv6 unicast" -c "neighbor 2001:11::2 activate"
+      - vtysh -c "conf t" -c "router bgp 11 vrf vrf1" -c "address-family ipv6 unicast" -c "sid vpn export auto"
+      - vtysh -c "conf t" -c "router bgp 11 vrf vrf1" -c "address-family ipv6 unicast" -c "rd vpn export 11:1001"
+      - vtysh -c "conf t" -c "router bgp 11 vrf vrf1" -c "address-family ipv6 unicast" -c "rt vpn export 1:1001"
+      - vtysh -c "conf t" -c "router bgp 11 vrf vrf1" -c "address-family ipv6 unicast" -c "rt vpn import 1:1001"
+      - vtysh -c "conf t" -c "router bgp 11 vrf vrf1" -c "address-family ipv6 unicast" -c "import vpn"
+      - vtysh -c "conf t" -c "router bgp 11 vrf vrf1" -c "address-family ipv6 unicast" -c "export vpn"
+      - vtysh -c "conf t" -c "router bgp 11 vrf vrf1" -c "address-family ipv6 unicast" -c "redistribute connected"
+
+    R2:
+      kind: linux
+      image: quay.io/frrouting/frr:master
+      sysctls:
+        net.ipv6.conf.all.disable_ipv6: '0'
+        net.ipv6.conf.default.disable_ipv6: '0'
+        net.ipv6.conf.all.forwarding: '1'
+      exec:
+      - sysctl -w net.ipv6.conf.all.forwarding=1
+      - sysctl -w net.ipv6.conf.all.disable_ipv6=0
+      - sysctl -w net.ipv6.conf.all.seg6_enabled=1
+      - sysctl -w net.ipv6.conf.default.forwarding=1
+      - sysctl -w net.ipv6.conf.default.disable_ipv6=0
+      - sysctl -w net.ipv6.conf.default.seg6_enabled=1
+      - sysctl -w net.ipv6.conf.lo.seg6_enabled=1
+      - sysctl -w net.ipv6.conf.net0.seg6_enabled=1
+      - sysctl -w net.ipv6.conf.net1.seg6_enabled=1
+      - sysctl -w net.ipv4.conf.all.rp_filter=0
+      - sysctl -w net.ipv4.conf.lo.rp_filter=0
+      - sysctl -w net.ipv4.conf.net0.rp_filter=0
+      - sysctl -w net.ipv4.conf.net1.rp_filter=0
+      - sysctl -w net.vrf.strict_mode=1
+      - ip addr add 10.255.0.12/32 dev lo
+      - ip addr add 2001:db8:e:12::0/128 dev lo
+      - ip link add vrf1 type vrf table 1001
+      - ip link set vrf1 up
+      - ip link set net1 master vrf1
+      - ip -6 addr add 2001:12::1/64 dev net1
+      - ip sr tunsrc set 2001:db8:f:2::0
+      - ip -6 rule add to 2001:db8::/32 pref 10 table main
+      - touch /etc/frr/vtysh.conf
+      - chown frr:frr /etc/frr/vtysh.conf
+      - touch /etc/frr/bgpd.conf
+      - chown frr:frr /etc/frr/bgpd.conf
+      - chmod 640 /etc/frr/bgpd.conf
+      - sed -i 's/^bgpd=.*/bgpd=yes/' /etc/frr/daemons
+      - /usr/lib/frr/bgpd -d -F traditional -A 127.0.0.1
+      - vtysh -c "conf t" -c "segment-routing" -c "srv6" -c "locators" -c "locator default" -c "prefix 2001:db8:f:2::/64"
+      - vtysh -c "conf t" -c "ipv6 route 2001:db8:f:2::/64 Null0"
+      - vtysh -c "conf t" -c "router bgp 12" -c "bgp router-id 12.12.12.12"
+      - vtysh -c "conf t" -c "router bgp 12" -c "no bgp ebgp-requires-policy"
+      - vtysh -c "conf t" -c "router bgp 12" -c "neighbor PEER peer-group"
+      - vtysh -c "conf t" -c "router bgp 12" -c "neighbor PEER remote-as external"
+      - vtysh -c "conf t" -c "router bgp 12" -c "neighbor net0 interface peer-group PEER"
+      - vtysh -c "conf t" -c "router bgp 12" -c "neighbor PE peer-group"
+      - vtysh -c "conf t" -c "router bgp 12" -c "neighbor PE remote-as external"
+      - vtysh -c "conf t" -c "router bgp 12" -c "neighbor PE ebgp-multihop 255"
+      - 'vtysh -c "conf t" -c "router bgp 12" -c "neighbor 2001:db8:e:1:: peer-group PE"'
+      - vtysh -c "conf t" -c "router bgp 12" -c "segment-routing srv6" -c "locator default"
+      - vtysh -c "conf t" -c "router bgp 12" -c "address-family ipv4 unicast" -c "redistribute connected"
+      - vtysh -c "conf t" -c "router bgp 12" -c "address-family ipv4 unicast" -c "neighbor PEER activate"
+      - vtysh -c "conf t" -c "router bgp 12" -c "address-family ipv6 unicast" -c "redistribute connected"
+      - vtysh -c "conf t" -c "router bgp 12" -c "address-family ipv6 unicast" -c "network 2001:db8:f:2::/64"
+      - vtysh -c "conf t" -c "router bgp 12" -c "address-family ipv6 unicast" -c "neighbor PEER activate"
+      - vtysh -c "conf t" -c "router bgp 12" -c "address-family ipv6 vpn" -c "neighbor PE activate"
+      - vtysh -c "conf t" -c "router bgp 12 vrf vrf1" -c "bgp router-id 12.12.12.12"
+      - vtysh -c "conf t" -c "router bgp 12 vrf vrf1" -c "no bgp ebgp-requires-policy"
+      - vtysh -c "conf t" -c "router bgp 12 vrf vrf1" -c "neighbor 2001:12::2 remote-as external"
+      - vtysh -c "conf t" -c "router bgp 12 vrf vrf1" -c "address-family ipv6 unicast" -c "neighbor 2001:12::2 activate"
+      - vtysh -c "conf t" -c "router bgp 12 vrf vrf1" -c "address-family ipv6 unicast" -c "sid vpn export auto"
+      - vtysh -c "conf t" -c "router bgp 12 vrf vrf1" -c "address-family ipv6 unicast" -c "rd vpn export 12:1001"
+      - vtysh -c "conf t" -c "router bgp 12 vrf vrf1" -c "address-family ipv6 unicast" -c "rt vpn export 1:1001"
+      - vtysh -c "conf t" -c "router bgp 12 vrf vrf1" -c "address-family ipv6 unicast" -c "rt vpn import 1:1001"
+      - vtysh -c "conf t" -c "router bgp 12 vrf vrf1" -c "address-family ipv6 unicast" -c "import vpn"
+      - vtysh -c "conf t" -c "router bgp 12 vrf vrf1" -c "address-family ipv6 unicast" -c "export vpn"
+      - vtysh -c "conf t" -c "router bgp 12 vrf vrf1" -c "address-family ipv6 unicast" -c "redistribute connected"
+
+    R3:
+      kind: linux
+      image: quay.io/frrouting/frr:master
+      sysctls:
+        net.ipv6.conf.all.disable_ipv6: '0'
+        net.ipv6.conf.default.disable_ipv6: '0'
+        net.ipv6.conf.all.forwarding: '1'
+      exec:
+      - sysctl -w net.ipv6.conf.all.forwarding=1
+      - sysctl -w net.ipv6.conf.all.disable_ipv6=0
+      - sysctl -w net.ipv6.conf.all.seg6_enabled=1
+      - sysctl -w net.ipv6.conf.default.forwarding=1
+      - sysctl -w net.ipv6.conf.default.disable_ipv6=0
+      - sysctl -w net.ipv6.conf.default.seg6_enabled=1
+      - sysctl -w net.ipv6.conf.lo.seg6_enabled=1
+      - sysctl -w net.ipv6.conf.net0.seg6_enabled=1
+      - sysctl -w net.ipv6.conf.net1.seg6_enabled=1
+      - sysctl -w net.ipv4.conf.all.rp_filter=0
+      - sysctl -w net.ipv4.conf.lo.rp_filter=0
+      - sysctl -w net.ipv4.conf.net0.rp_filter=0
+      - sysctl -w net.ipv4.conf.net1.rp_filter=0
+      - sysctl -w net.vrf.strict_mode=1
+      - ip addr add 10.255.0.13/32 dev lo
+      - ip addr add 2001:db8:e:13::0/128 dev lo
+      - ip link add vrf1 type vrf table 1001
+      - ip link set vrf1 up
+      - ip link set net1 master vrf1
+      - ip -6 addr add 2001:13::1/64 dev net1
+      - ip sr tunsrc set 2001:db8:f:3::0
+      - ip -6 rule add to 2001:db8::/32 pref 10 table main
+      - touch /etc/frr/vtysh.conf
+      - chown frr:frr /etc/frr/vtysh.conf
+      - touch /etc/frr/bgpd.conf
+      - chown frr:frr /etc/frr/bgpd.conf
+      - chmod 640 /etc/frr/bgpd.conf
+      - sed -i 's/^bgpd=.*/bgpd=yes/' /etc/frr/daemons
+      - /usr/lib/frr/bgpd -d -F traditional -A 127.0.0.1
+      - vtysh -c "conf t" -c "segment-routing" -c "srv6" -c "locators" -c "locator default" -c "prefix 2001:db8:f:3::/64"
+      - vtysh -c "conf t" -c "ipv6 route 2001:db8:f:3::/64 Null0"
+      - vtysh -c "conf t" -c "router bgp 13" -c "bgp router-id 13.13.13.13"
+      - vtysh -c "conf t" -c "router bgp 13" -c "no bgp ebgp-requires-policy"
+      - vtysh -c "conf t" -c "router bgp 13" -c "neighbor PEER peer-group"
+      - vtysh -c "conf t" -c "router bgp 13" -c "neighbor PEER remote-as external"
+      - vtysh -c "conf t" -c "router bgp 13" -c "neighbor net0 interface peer-group PEER"
+      - vtysh -c "conf t" -c "router bgp 13" -c "neighbor PE peer-group"
+      - vtysh -c "conf t" -c "router bgp 13" -c "neighbor PE remote-as external"
+      - vtysh -c "conf t" -c "router bgp 13" -c "neighbor PE ebgp-multihop 255"
+      - 'vtysh -c "conf t" -c "router bgp 13" -c "neighbor 2001:db8:e:1:: peer-group PE"'
+      - vtysh -c "conf t" -c "router bgp 13" -c "segment-routing srv6" -c "locator default"
+      - vtysh -c "conf t" -c "router bgp 13" -c "address-family ipv4 unicast" -c "redistribute connected"
+      - vtysh -c "conf t" -c "router bgp 13" -c "address-family ipv4 unicast" -c "neighbor PEER activate"
+      - vtysh -c "conf t" -c "router bgp 13" -c "address-family ipv6 unicast" -c "redistribute connected"
+      - vtysh -c "conf t" -c "router bgp 13" -c "address-family ipv6 unicast" -c "network 2001:db8:f:3::/64"
+      - vtysh -c "conf t" -c "router bgp 13" -c "address-family ipv6 unicast" -c "neighbor PEER activate"
+      - vtysh -c "conf t" -c "router bgp 13" -c "address-family ipv6 vpn" -c "neighbor PE activate"
+      - vtysh -c "conf t" -c "router bgp 13 vrf vrf1" -c "bgp router-id 13.13.13.13"
+      - vtysh -c "conf t" -c "router bgp 13 vrf vrf1" -c "no bgp ebgp-requires-policy"
+      - vtysh -c "conf t" -c "router bgp 13 vrf vrf1" -c "address-family ipv6 unicast" -c "sid vpn export auto"
+      - vtysh -c "conf t" -c "router bgp 13 vrf vrf1" -c "address-family ipv6 unicast" -c "rd vpn export 13:1001"
+      - vtysh -c "conf t" -c "router bgp 13 vrf vrf1" -c "address-family ipv6 unicast" -c "rt vpn export 1:1001"
+      - vtysh -c "conf t" -c "router bgp 13 vrf vrf1" -c "address-family ipv6 unicast" -c "rt vpn import 1:1001"
+      - vtysh -c "conf t" -c "router bgp 13 vrf vrf1" -c "address-family ipv6 unicast" -c "import vpn"
+      - vtysh -c "conf t" -c "router bgp 13 vrf vrf1" -c "address-family ipv6 unicast" -c "export vpn"
+      - vtysh -c "conf t" -c "router bgp 13 vrf vrf1" -c "address-family ipv6 unicast" -c "redistribute connected"
+
+    C1:
+      kind: linux
+      image: quay.io/frrouting/frr:master
+      sysctls:
+        net.ipv6.conf.all.disable_ipv6: '0'
+        net.ipv6.conf.default.disable_ipv6: '0'
+        net.ipv6.conf.all.forwarding: '1'
+      exec:
+      - ip -6 addr add 2001:11::2/64 dev net0
+      - ip -6 route replace default via 2001:11::1
+      - touch /etc/frr/vtysh.conf
+      - chown frr:frr /etc/frr/vtysh.conf
+      - touch /etc/frr/bgpd.conf
+      - chown frr:frr /etc/frr/bgpd.conf
+      - chmod 640 /etc/frr/bgpd.conf
+      - sed -i 's/^bgpd=.*/bgpd=yes/' /etc/frr/daemons
+      - /usr/lib/frr/bgpd -d -F traditional -A 127.0.0.1
+      - vtysh -c "conf t" -c "ipv6 route 0::/0 Null0"
+      - vtysh -c "conf t" -c "router bgp 101" -c "bgp router-id 101.101.101.101"
+      - vtysh -c "conf t" -c "router bgp 101" -c "no bgp ebgp-requires-policy"
+      - vtysh -c "conf t" -c "router bgp 101" -c "neighbor 2001:11::1 remote-as external"
+      - vtysh -c "conf t" -c "router bgp 101" -c "address-family ipv6 unicast" -c "neighbor 2001:11::1 activate"
+      - vtysh -c "conf t" -c "router bgp 101" -c "address-family ipv6 unicast" -c "network 0::/0"
+
+    C2:
+      kind: linux
+      image: quay.io/frrouting/frr:master
+      sysctls:
+        net.ipv6.conf.all.disable_ipv6: '0'
+        net.ipv6.conf.default.disable_ipv6: '0'
+        net.ipv6.conf.all.forwarding: '1'
+      exec:
+      - ip -6 addr add 2001:12::2/64 dev net0
+      - ip -6 route replace default via 2001:12::1
+      - touch /etc/frr/vtysh.conf
+      - chown frr:frr /etc/frr/vtysh.conf
+      - touch /etc/frr/bgpd.conf
+      - chown frr:frr /etc/frr/bgpd.conf
+      - chmod 640 /etc/frr/bgpd.conf
+      - sed -i 's/^bgpd=.*/bgpd=yes/' /etc/frr/daemons
+      - /usr/lib/frr/bgpd -d -F traditional -A 127.0.0.1
+      - vtysh -c "conf t" -c "ipv6 route 0::/0 Null0"
+      - vtysh -c "conf t" -c "router bgp 102" -c "bgp router-id 102.102.102.102"
+      - vtysh -c "conf t" -c "router bgp 102" -c "no bgp ebgp-requires-policy"
+      - vtysh -c "conf t" -c "router bgp 102" -c "neighbor 2001:12::1 remote-as external"
+      - vtysh -c "conf t" -c "router bgp 102" -c "address-family ipv6 unicast" -c "neighbor 2001:12::1 activate"
+      - vtysh -c "conf t" -c "router bgp 102" -c "address-family ipv6 unicast" -c "network 0::/0"
+
+    C3:
+      kind: linux
+      image: quay.io/frrouting/frr:master
+      sysctls:
+        net.ipv6.conf.all.disable_ipv6: '0'
+        net.ipv6.conf.default.disable_ipv6: '0'
+        net.ipv6.conf.all.forwarding: '1'
+      exec:
+      - ip -6 addr add 2001:13::2/64 dev net0
+      - ip -6 route replace default via 2001:13::1
+      - touch /etc/frr/vtysh.conf
+      - chown frr:frr /etc/frr/vtysh.conf
+      - touch /etc/frr/bgpd.conf
+      - chown frr:frr /etc/frr/bgpd.conf
+      - chmod 640 /etc/frr/bgpd.conf
+      - sed -i 's/^bgpd=.*/bgpd=yes/' /etc/frr/daemons
+      - /usr/lib/frr/bgpd -d -F traditional -A 127.0.0.1
+      - vtysh -c "conf t" -c "ipv6 route 0::/0 Null0"
+      - vtysh -c "conf t" -c "router bgp 103" -c "bgp router-id 103.103.103.103"
+      - vtysh -c "conf t" -c "router bgp 103" -c "no bgp ebgp-requires-policy"
+      - vtysh -c "conf t" -c "router bgp 103" -c "neighbor 2001:13::1 remote-as external"
+      - vtysh -c "conf t" -c "router bgp 103" -c "address-family ipv6 unicast" -c "neighbor 2001:13::1 activate"
+      - vtysh -c "conf t" -c "router bgp 103" -c "address-family ipv6 unicast" -c "network 0::/0"
+
+  links:
+  - endpoints: [RS1:net0, S1:net0]
+  - endpoints: [S1:net1, R1:net0]
+  - endpoints: [S1:net2, R2:net0]
+  - endpoints: [S1:net3, R3:net0]
+  - endpoints: [R1:net1, C1:net0]
+  - endpoints: [R2:net1, C2:net0]
+  - endpoints: [R3:net1, C3:net0]
