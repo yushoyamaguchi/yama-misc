@@ -1,7 +1,6 @@
 nodes:
 - name: RS1
-  image: frr:centos-8-nettool
-  docker_run_extra_args: --entrypoint bash
+  image: quay.io/frrouting/frr:master
   interfaces:
   - { name: net0, type: direct, args: S1#net0 }
   sysctls:
@@ -10,8 +9,7 @@ nodes:
   - sysctl: net.ipv6.conf.all.forwarding=1
 
 - name: S1
-  image: frr:centos-8-nettool
-  docker_run_extra_args: --entrypoint bash
+  image: quay.io/frrouting/frr:master
   interfaces:
   - { name: net0, type: direct, args: RS1#net0 }
   - { name: net1, type: direct, args: R1#net0 }
@@ -23,8 +21,7 @@ nodes:
   - sysctl: net.ipv6.conf.all.forwarding=1
 
 - name: R1
-  image: frr:centos-8-nettool
-  docker_run_extra_args: --entrypoint bash
+  image: quay.io/frrouting/frr:master
   interfaces:
   - { name: net0, type: direct, args: S1#net1 }
   - { name: net1, type: direct, args: C1#net0 }
@@ -33,8 +30,7 @@ nodes:
   - sysctl: net.ipv6.conf.default.disable_ipv6=0
   - sysctl: net.ipv6.conf.all.forwarding=1
 - name: R2
-  image: frr:centos-8-nettool
-  docker_run_extra_args: --entrypoint bash
+  image: quay.io/frrouting/frr:master
   interfaces:
   - { name: net0, type: direct, args: S1#net2 }
   - { name: net1, type: direct, args: C2#net0 }
@@ -43,8 +39,7 @@ nodes:
   - sysctl: net.ipv6.conf.default.disable_ipv6=0
   - sysctl: net.ipv6.conf.all.forwarding=1
 - name: R3
-  image: frr:centos-8-nettool
-  docker_run_extra_args: --entrypoint bash
+  image: quay.io/frrouting/frr:master
   interfaces:
   - { name: net0, type: direct, args: S1#net3 }
   - { name: net1, type: direct, args: C3#net0 }
@@ -54,8 +49,7 @@ nodes:
   - sysctl: net.ipv6.conf.all.forwarding=1
 
 - name: C1
-  image: frr:centos-8-nettool
-  docker_run_extra_args: --entrypoint bash
+  image: quay.io/frrouting/frr:master
   interfaces:
   - { name: net0, type: direct, args: R1#net1 }
   sysctls:
@@ -63,8 +57,7 @@ nodes:
   - sysctl: net.ipv6.conf.default.disable_ipv6=0
   - sysctl: net.ipv6.conf.all.forwarding=1
 - name: C2
-  image: frr:centos-8-nettool
-  docker_run_extra_args: --entrypoint bash
+  image: quay.io/frrouting/frr:master
   interfaces:
   - { name: net0, type: direct, args: R2#net1 }
   sysctls:
@@ -72,8 +65,7 @@ nodes:
   - sysctl: net.ipv6.conf.default.disable_ipv6=0
   - sysctl: net.ipv6.conf.all.forwarding=1
 - name: C3
-  image: frr:centos-8-nettool
-  docker_run_extra_args: --entrypoint bash
+  image: quay.io/frrouting/frr:master
   interfaces:
   - { name: net0, type: direct, args: R3#net1 }
   sysctls:
@@ -84,10 +76,15 @@ nodes:
 node_configs:
 - name: RS1
   cmds:
-  - cmd: sed -i 's/bgpd=no/bgpd=yes/' /etc/frr/daemons
   - cmd: ip addr add 10.255.0.1/32 dev lo
   - cmd: ip addr add 2001:db8:e:1::0/128 dev lo
-  - cmd: /usr/lib/frr/frrinit.sh start
+  - cmd: touch /etc/frr/vtysh.conf
+  - cmd: chown frr:frr /etc/frr/vtysh.conf
+  - cmd: touch /etc/frr/bgpd.conf
+  - cmd: chown frr:frr /etc/frr/bgpd.conf
+  - cmd: chmod 640 /etc/frr/bgpd.conf
+  - cmd: sed -i 's/^bgpd=.*/bgpd=yes/' /etc/frr/daemons
+  - cmd: /usr/lib/frr/bgpd -d -F traditional -A 127.0.0.1
   - cmd: >-
       vtysh -c "conf t"
       -c "router bgp 1"
@@ -120,9 +117,14 @@ node_configs:
 
 - name: S1
   cmds:
-  - cmd: sed -i 's/bgpd=no/bgpd=yes/' /etc/frr/daemons
   - cmd: ip addr add 10.255.0.100/32 dev lo
-  - cmd: /usr/lib/frr/frrinit.sh start
+  - cmd: touch /etc/frr/vtysh.conf
+  - cmd: chown frr:frr /etc/frr/vtysh.conf
+  - cmd: touch /etc/frr/bgpd.conf
+  - cmd: chown frr:frr /etc/frr/bgpd.conf
+  - cmd: chmod 640 /etc/frr/bgpd.conf
+  - cmd: sed -i 's/^bgpd=.*/bgpd=yes/' /etc/frr/daemons
+  - cmd: /usr/lib/frr/bgpd -d -F traditional -A 127.0.0.1
   - cmd: >-
       vtysh -c "conf t"
       -c "router bgp 100"
@@ -149,7 +151,6 @@ node_configs:
 
 - name: R1
   cmds:
-  - cmd: sed -i 's/bgpd=no/bgpd=yes/' /etc/frr/daemons
   - cmd: sysctl -w 'net.ipv6.conf.all.forwarding=1'
   - cmd: sysctl -w 'net.ipv6.conf.all.disable_ipv6=0'
   - cmd: sysctl -w 'net.ipv6.conf.all.seg6_enabled=1'
@@ -177,7 +178,13 @@ node_configs:
 
   - cmd: ip sr tunsrc set 2001:db8:f:1::0
   - cmd: ip -6 rule add to 2001:db8::/32 pref 10 table main
-  - cmd: /usr/lib/frr/frrinit.sh start
+  - cmd: touch /etc/frr/vtysh.conf
+  - cmd: chown frr:frr /etc/frr/vtysh.conf
+  - cmd: touch /etc/frr/bgpd.conf
+  - cmd: chown frr:frr /etc/frr/bgpd.conf
+  - cmd: chmod 640 /etc/frr/bgpd.conf
+  - cmd: sed -i 's/^bgpd=.*/bgpd=yes/' /etc/frr/daemons
+  - cmd: /usr/lib/frr/bgpd -d -F traditional -A 127.0.0.1
   - cmd: >-
       vtysh -c "conf t"
       -c 'log file /tmp/frr.log'
@@ -252,7 +259,6 @@ node_configs:
 
 - name: R2
   cmds:
-  - cmd: sed -i 's/bgpd=no/bgpd=yes/' /etc/frr/daemons
   - cmd: sysctl -w 'net.ipv6.conf.all.forwarding=1'
   - cmd: sysctl -w 'net.ipv6.conf.all.disable_ipv6=0'
   - cmd: sysctl -w 'net.ipv6.conf.all.seg6_enabled=1'
@@ -280,7 +286,13 @@ node_configs:
 
   - cmd: ip sr tunsrc set 2001:db8:f:2::0
   - cmd: ip -6 rule add to 2001:db8::/32 pref 10 table main
-  - cmd: /usr/lib/frr/frrinit.sh start
+  - cmd: touch /etc/frr/vtysh.conf
+  - cmd: chown frr:frr /etc/frr/vtysh.conf
+  - cmd: touch /etc/frr/bgpd.conf
+  - cmd: chown frr:frr /etc/frr/bgpd.conf
+  - cmd: chmod 640 /etc/frr/bgpd.conf
+  - cmd: sed -i 's/^bgpd=.*/bgpd=yes/' /etc/frr/daemons
+  - cmd: /usr/lib/frr/bgpd -d -F traditional -A 127.0.0.1
   - cmd: >-
       vtysh -c "conf t"
       -c 'log file /tmp/frr.log'
@@ -355,7 +367,6 @@ node_configs:
 
 - name: R3
   cmds:
-  - cmd: sed -i 's/bgpd=no/bgpd=yes/' /etc/frr/daemons
   - cmd: sysctl -w 'net.ipv6.conf.all.forwarding=1'
   - cmd: sysctl -w 'net.ipv6.conf.all.disable_ipv6=0'
   - cmd: sysctl -w 'net.ipv6.conf.all.seg6_enabled=1'
@@ -383,7 +394,13 @@ node_configs:
 
   - cmd: ip sr tunsrc set 2001:db8:f:3::0
   - cmd: ip -6 rule add to 2001:db8::/32 pref 10 table main
-  - cmd: /usr/lib/frr/frrinit.sh start
+  - cmd: touch /etc/frr/vtysh.conf
+  - cmd: chown frr:frr /etc/frr/vtysh.conf
+  - cmd: touch /etc/frr/bgpd.conf
+  - cmd: chown frr:frr /etc/frr/bgpd.conf
+  - cmd: chmod 640 /etc/frr/bgpd.conf
+  - cmd: sed -i 's/^bgpd=.*/bgpd=yes/' /etc/frr/daemons
+  - cmd: /usr/lib/frr/bgpd -d -F traditional -A 127.0.0.1
   - cmd: >-
       vtysh -c "conf t"
       -c "segment-routing"
@@ -446,10 +463,15 @@ node_configs:
 
 - name: C1
   cmds:
-  - cmd: sed -i 's/bgpd=no/bgpd=yes/' /etc/frr/daemons
   - cmd: ip addr add 10.11.0.2/24 dev net0
   - cmd: ip route replace default via 10.11.0.1
-  - cmd: /usr/lib/frr/frrinit.sh start
+  - cmd: touch /etc/frr/vtysh.conf
+  - cmd: chown frr:frr /etc/frr/vtysh.conf
+  - cmd: touch /etc/frr/bgpd.conf
+  - cmd: chown frr:frr /etc/frr/bgpd.conf
+  - cmd: chmod 640 /etc/frr/bgpd.conf
+  - cmd: sed -i 's/^bgpd=.*/bgpd=yes/' /etc/frr/daemons
+  - cmd: /usr/lib/frr/bgpd -d -F traditional -A 127.0.0.1
   - cmd: >-
       vtysh -c "conf t"
       -c "ip route 0.0.0.0/0 Null0"
@@ -466,10 +488,15 @@ node_configs:
 
 - name: C2
   cmds:
-  - cmd: sed -i 's/bgpd=no/bgpd=yes/' /etc/frr/daemons
   - cmd: ip addr add 10.12.0.2/24 dev net0
   - cmd: ip route replace default via 10.12.0.1
-  - cmd: /usr/lib/frr/frrinit.sh start
+  - cmd: touch /etc/frr/vtysh.conf
+  - cmd: chown frr:frr /etc/frr/vtysh.conf
+  - cmd: touch /etc/frr/bgpd.conf
+  - cmd: chown frr:frr /etc/frr/bgpd.conf
+  - cmd: chmod 640 /etc/frr/bgpd.conf
+  - cmd: sed -i 's/^bgpd=.*/bgpd=yes/' /etc/frr/daemons
+  - cmd: /usr/lib/frr/bgpd -d -F traditional -A 127.0.0.1
   - cmd: >-
       vtysh -c "conf t"
       -c "ip route 0.0.0.0/0 Null0"
@@ -486,10 +513,15 @@ node_configs:
 
 - name: C3
   cmds:
-  - cmd: sed -i 's/bgpd=no/bgpd=yes/' /etc/frr/daemons
   - cmd: ip addr add 10.13.0.2/24 dev net0
   - cmd: ip route replace default via 10.13.0.1
-  - cmd: /usr/lib/frr/frrinit.sh start
+  - cmd: touch /etc/frr/vtysh.conf
+  - cmd: chown frr:frr /etc/frr/vtysh.conf
+  - cmd: touch /etc/frr/bgpd.conf
+  - cmd: chown frr:frr /etc/frr/bgpd.conf
+  - cmd: chmod 640 /etc/frr/bgpd.conf
+  - cmd: sed -i 's/^bgpd=.*/bgpd=yes/' /etc/frr/daemons
+  - cmd: /usr/lib/frr/bgpd -d -F traditional -A 127.0.0.1
   - cmd: >-
       vtysh -c "conf t"
       -c "ip route 0.0.0.0/0 Null0"

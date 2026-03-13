@@ -1,6 +1,6 @@
 nodes:
 - name: RS1
-  image: frr:centos-8-333cba65c4
+  image: frr:centos-8-nettool
   docker_run_extra_args: --entrypoint bash
   interfaces:
   - { name: net0, type: direct, args: S1#net0 }
@@ -10,7 +10,7 @@ nodes:
   - sysctl: net.ipv6.conf.all.forwarding=1
 
 - name: S1
-  image: frr:centos-8-333cba65c4
+  image: frr:centos-8-nettool
   docker_run_extra_args: --entrypoint bash
   interfaces:
   - { name: net0, type: direct, args: RS1#net0 }
@@ -23,7 +23,7 @@ nodes:
   - sysctl: net.ipv6.conf.all.forwarding=1
 
 - name: R1
-  image: frr:centos-8-333cba65c4
+  image: frr:centos-8-nettool
   docker_run_extra_args: --entrypoint bash
   interfaces:
   - { name: net0, type: direct, args: S1#net1 }
@@ -33,7 +33,7 @@ nodes:
   - sysctl: net.ipv6.conf.default.disable_ipv6=0
   - sysctl: net.ipv6.conf.all.forwarding=1
 - name: R2
-  image: frr:centos-8-333cba65c4
+  image: frr:centos-8-nettool
   docker_run_extra_args: --entrypoint bash
   interfaces:
   - { name: net0, type: direct, args: S1#net2 }
@@ -43,7 +43,7 @@ nodes:
   - sysctl: net.ipv6.conf.default.disable_ipv6=0
   - sysctl: net.ipv6.conf.all.forwarding=1
 - name: R3
-  image: frr:centos-8-333cba65c4
+  image: frr:centos-8-nettool
   docker_run_extra_args: --entrypoint bash
   interfaces:
   - { name: net0, type: direct, args: S1#net3 }
@@ -54,7 +54,7 @@ nodes:
   - sysctl: net.ipv6.conf.all.forwarding=1
 
 - name: C1
-  image: frr:centos-8-333cba65c4
+  image: frr:centos-8-nettool
   docker_run_extra_args: --entrypoint bash
   interfaces:
   - { name: net0, type: direct, args: R1#net1 }
@@ -63,7 +63,7 @@ nodes:
   - sysctl: net.ipv6.conf.default.disable_ipv6=0
   - sysctl: net.ipv6.conf.all.forwarding=1
 - name: C2
-  image: frr:centos-8-333cba65c4
+  image: frr:centos-8-nettool
   docker_run_extra_args: --entrypoint bash
   interfaces:
   - { name: net0, type: direct, args: R2#net1 }
@@ -72,7 +72,7 @@ nodes:
   - sysctl: net.ipv6.conf.default.disable_ipv6=0
   - sysctl: net.ipv6.conf.all.forwarding=1
 - name: C3
-  image: frr:centos-8-333cba65c4
+  image: frr:centos-8-nettool
   docker_run_extra_args: --entrypoint bash
   interfaces:
   - { name: net0, type: direct, args: R3#net1 }
