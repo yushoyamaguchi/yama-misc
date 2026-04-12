@@ -1,0 +1,53 @@
+name: ecmp_static
+
+topology:
+  nodes:
+    client:
+      kind: linux
+      image: nicolaka/netshoot:latest
+      exec:
+        - ip addr add 10.0.1.2/30 dev eth1
+        - ip addr add 10.0.2.2/30 dev eth2
+        - ip link set eth1 up
+        - ip link set eth2 up
+
+    gw1:
+      kind: linux
+      image: nicolaka/netshoot:latest
+      exec:
+        - sysctl -w net.ipv4.ip_forward=1
+        - ip addr add 10.0.1.1/30 dev eth1
+        - ip addr add 192.0.2.1/30 dev eth2
+        - ip link set eth1 up
+        - ip link set eth2 up
+        - ip route add 203.0.113.1/32 via 192.0.2.2 dev eth2
+
+    gw2:
+      kind: linux
+      image: nicolaka/netshoot:latest
+      exec:
+        - sysctl -w net.ipv4.ip_forward=1
+        - ip addr add 10.0.2.1/30 dev eth1
+        - ip addr add 192.0.2.5/30 dev eth2
+        - ip link set eth1 up
+        - ip link set eth2 up
+        - ip route add 203.0.113.1/32 via 192.0.2.6 dev eth2
+
+    internet:
+      kind: linux
+      image: nicolaka/netshoot:latest
+      exec:
+        - ip addr add 192.0.2.2/30 dev eth1
+        - ip addr add 192.0.2.6/30 dev eth2
+        - ip addr add 203.0.113.1/32 dev lo
+        - ip link set eth1 up
+        - ip link set eth2 up
+        - ip link set lo up
+        - ip route add 10.0.1.0/30 via 192.0.2.1 dev eth1
+        - ip route add 10.0.2.0/30 via 192.0.2.5 dev eth2
+
+  links:
+    - endpoints: ["client:eth1", "gw1:eth1"]
+    - endpoints: ["client:eth2", "gw2:eth1"]
+    - endpoints: ["gw1:eth2", "internet:eth1"]
+    - endpoints: ["gw2:eth2", "internet:eth2"]
