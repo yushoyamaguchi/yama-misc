@@ -31,30 +31,30 @@ client -------------- gw1 -------------------- internet
 ## Usage
 
 ```bash
-sudo containerlab deploy -t clab-ecmp-static.yaml
+sudo containerlab deploy -t clab-ecmp_static.yaml
 # ... run your tests ...
-sudo containerlab destroy -t clab-ecmp-static.yaml -c
+sudo containerlab destroy -t clab-ecmp_static.yaml -c
 ```
 
 Enter the client container and add the candidate default routes. Example using the Linux `nexthop` syntax:
 
 ```bash
-docker exec -it clab-ecmp-static-client bash -lc \
+docker exec -it clab-ecmp_static-client bash -lc \
   "ip route replace default \\n     nexthop via 10.0.1.1 dev eth1 weight 1 \\n     nexthop via 10.0.2.1 dev eth2 weight 1"
 ```
 
 To mimic two independent `ip route add default via ...` statements instead:
 
 ```bash
-docker exec -it clab-ecmp-static-client bash -lc "ip route replace default via 10.0.1.1 dev eth1"
-docker exec -it clab-ecmp-static-client bash -lc "ip route append default via 10.0.2.1 dev eth2"
+docker exec -it clab-ecmp_static-client bash -lc "ip route replace default via 10.0.1.1 dev eth1"
+docker exec -it clab-ecmp_static-client bash -lc "ip route append default via 10.0.2.1 dev eth2"
 ```
 
 Test reachability toward the shared destination:
 
 ```bash
-docker exec -it clab-ecmp-static-client bash -lc "ping -I 10.0.1.2 203.0.113.1"
-docker exec -it clab-ecmp-static-client bash -lc "ping -I 10.0.2.2 203.0.113.1"
+docker exec -it clab-ecmp_static-client bash -lc "ping -I 10.0.1.2 203.0.113.1"
+docker exec -it clab-ecmp_static-client bash -lc "ping -I 10.0.2.2 203.0.113.1"
 ```
 
 Use `ip route show`, `ip -s route get`, or packet captures (e.g., `tcpdump -i eth1`) inside the nodes to verify whether traffic is being hashed across both next-hops.
