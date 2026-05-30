@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nginx-netshoot-daemonset
+  labels:
+    app: nginx1
+spec:
+  selector:
+    matchLabels:
+      app: nginx1
+  template:
+    metadata:
+      labels:
+        app: nginx1
+      annotations:
+        k8s.v1.cni.cncf.io/networks: br-ecmp-ipvlan
+    spec:
+      containers:
+      - name: nginx1
+        image: docker.io/library/my-netshoot-nginx:v2
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/bash", "-c", "exec nginx -g 'daemon off;'"]
+        securityContext:
+          privileged: true

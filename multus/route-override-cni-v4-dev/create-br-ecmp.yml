@@ -1,0 +1,57 @@
+---
+- name: Setup kind nodes - CNI plugins and br-ecmp bridge
+  hosts: kind_nodes
+  gather_facts: false
+  tasks:
+    # --- CNI plugins ---
+    - name: Ensure /opt/cni/bin exists
+      ansible.builtin.raw: mkdir -p /opt/cni/bin
+
+    - name: Deploy standard CNI plugins
+      ansible.builtin.command: >
+        docker cp {{ playbook_dir }}/../../../cni-plugins/bin/. {{ inventory_hostname }}:/opt/cni/bin/
+      delegate_to: localhost
+      changed_when: true
+
+    - name: Deploy route-override CNI plugin
+      ansible.builtin.command: >
+        docker cp {{ playbook_dir }}/../../../route-override-cni/bin/. {{ inventory_hostname }}:/opt/cni/bin/
+      delegate_to: localhost
+      changed_when: true
+
+    - name: Make CNI plugins executable
+      ansible.builtin.raw: chmod 755 /opt/cni/bin/*
+
+    # --- br-ecmp bridge ---
+    - name: Check if br-ecmp already exists
+      ansible.builtin.raw: ip link show br-ecmp
+      register: bridge_check
+      failed_when: false
+      changed_when: false
+
+    - name: Create br-ecmp bridge
+      ansible.builtin.raw: ip link add name br-ecmp type bridge
+      when: bridge_check.rc != 0
+
+    - name: Bring br-ecmp up
+      ansible.builtin.raw: ip link set br-ecmp up
+      when: bridge_check.rc != 0
+
+    - name: Check if IP already assigned
+      ansible.builtin.raw: ip addr show br-ecmp | grep -q "{{ br_ecmp_ip.split('/')[0] }}"
+      register: ip_check
+      failed_when: false
+      changed_when: false
+
+    - name: Assign IP to br-ecmp
+      ansible.builtin.raw: ip addr add {{ br_ecmp_ip }} dev br-ecmp
+      when: ip_check.rc != 0
+
+    - name: Show br-ecmp status
+      ansible.builtin.raw: ip link show br-ecmp
+      register: bridge_status
+      changed_when: false
+
+    - name: Print br-ecmp status
+      ansible.builtin.debug:
+        msg: "{{ bridge_status.stdout }}"
