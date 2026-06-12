@@ -9,8 +9,8 @@ sudo pwd
 echo "building cni-plugins"
 (cd ../../../cni-plugins && sudo bash build_linux.sh)
 
-echo "building route-override-cni"
-(cd ../../../route-override-cni && sudo bash build_linux.sh)
+echo "building cni-route-override"
+(cd ../../../cni-route-override && sudo bash build_linux.sh)
 
 echo "building custom kind node image with network tools"
 docker build --network=host -t $KIND_IMAGE ./kind-image

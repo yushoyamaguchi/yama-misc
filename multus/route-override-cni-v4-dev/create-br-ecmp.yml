@@ -15,7 +15,7 @@
 
     - name: Deploy route-override CNI plugin
       ansible.builtin.command: >
-        docker cp {{ playbook_dir }}/../../../route-override-cni/bin/. {{ inventory_hostname }}:/opt/cni/bin/
+        docker cp {{ playbook_dir }}/../../../cni-route-override/bin/. {{ inventory_hostname }}:/opt/cni/bin/
       delegate_to: localhost
       changed_when: true
 
