@@ -12,11 +12,19 @@ echo "building cni-plugins"
 echo "building cni-route-override"
 (cd ../../../cni-route-override && sudo bash build_linux.sh)
 
-echo "building custom kind node image with network tools"
-docker build --network=host -t $KIND_IMAGE ./kind-image
+if ! docker image inspect "$KIND_IMAGE" >/dev/null 2>&1; then
+    echo "building custom kind node image with network tools"
+    docker build --network=host -t "$KIND_IMAGE" ./kind-image
+else
+    echo "$KIND_IMAGE already exists. Skip."
+fi
 
-echo "building netshoot & nginx images"
-docker build --network=host -t $NETSHOOT_NGINX_IMAGE ./pod-image
+if ! docker image inspect "$NETSHOOT_NGINX_IMAGE" >/dev/null 2>&1; then
+    echo "building netshoot & nginx images"
+    docker build --network=host -t "$NETSHOOT_NGINX_IMAGE" ./pod-image
+else
+    echo "$NETSHOOT_NGINX_IMAGE already exists. Skip."
+fi
 
 echo "creating kind cluster"
 kind create cluster --image $KIND_IMAGE --config=kind-config.yaml
@@ -28,4 +36,6 @@ kubectl apply -f https://raw.githubusercontent.com/k8snetworkplumbingwg/multus-c
 kind load docker-image $NETSHOOT_NGINX_IMAGE --name kind
 
 kubectl apply -f nad.yaml
+kubectl wait --for=condition=Ready pod -n kube-system -l app=multus --timeout=120s
+
 kubectl apply -f daemonsets.yaml
